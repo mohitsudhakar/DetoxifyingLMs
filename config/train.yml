@@ -1,0 +1,6 @@
+config:
+  batch_size: 16
+  num_workers: 2
+  num_epochs: 10
+  path: data/
+

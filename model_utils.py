@@ -1,0 +1,125 @@
+import numpy as np
+import torch
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+
+def plotGraph(y, title=""):
+  x = range(len(y))
+  plt.plot(x, y)
+  plt.title(title)
+  plt.show()
+  plt.savefig(title)
+
+
+def plotPC(ev, title, num_pcs=3):
+  for pc in range(num_pcs):
+    pcs = [f[pc] for f in ev]
+    x = range(len(pcs))
+    plt.plot(x, pcs)
+  plt.legend(['PC'+str(i) for i in range(1, num_pcs+1)])
+  plt.savefig(title + '.png')
+  plt.close()
+
+
+# Computes PCs of difference vector
+def getPrincipalComponents(D, num_comp=None):
+  # print(D.shape)
+  pca = PCA(n_components=num_comp, svd_solver="auto")
+  X = D.cpu().detach().numpy()
+  pca.fit(X)
+  ev_percent = pca.explained_variance_ratio_
+  ev = pca.explained_variance_
+  return torch.Tensor(np.array(pca.components_)), np.array(ev_percent), np.array(ev)
+
+
+def projection(a, b):
+  inner = torch.mm(a, b.T)
+  res = a - torch.mm(inner, b)
+  return res
+
+
+def initBert():
+  from transformers import BertTokenizer, BertModel
+  tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+  model = BertModel.from_pretrained('bert-base-uncased')
+  return tokenizer, model
+
+
+def initGpt2():
+  from transformers import GPT2Tokenizer, GPT2Model, GPT2Config
+  gpt2_tokenizer = GPT2Tokenizer.from_pretrained('gpt2', add_prefix_space=True)
+  gpt2_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+  gpt2_config = GPT2Config(vocab_size=gpt2_tokenizer.vocab_size)
+  gpt2_model = GPT2Model.from_pretrained('gpt2', config=gpt2_config)
+  gpt2_model.resize_token_embeddings(len(gpt2_tokenizer))
+  return gpt2_tokenizer, gpt2_model
+
+
+def initRoberta():
+  from transformers import RobertaTokenizer, RobertaModel, BertModel
+  roberta_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+  roberta_model = RobertaModel.from_pretrained('roberta-base')
+  bert_model = BertModel.from_pretrained('bert-base-uncased')
+  return roberta_tokenizer, roberta_model, bert_model
+
+
+def initXlnet():
+  from transformers import XLNetTokenizer, XLNetModel
+  xlnet_tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
+  xlnet_model = XLNetModel.from_pretrained('xlnet-base-cased')
+  return xlnet_tokenizer, xlnet_model
+
+
+def getPretrained(model):
+  switcher = {
+    'bert': initBert,
+    'gpt2': initGpt2,
+    'roberta': initRoberta,
+    'xlnet': initXlnet
+  }
+  return switcher.get(model, (None, None))()
+
+
+def clsBert():
+  from transformers import BertForSequenceClassification
+  return BertForSequenceClassification.from_pretrained('bert-base-uncased', return_dict=True)
+
+def clsGpt2():
+  from transformers import GPT2ForSequenceClassification
+  return GPT2ForSequenceClassification.from_pretrained('gpt2', return_dict=True)
+
+def clsRoberta():
+  from transformers import RobertaForSequenceClassification
+  return RobertaForSequenceClassification.from_pretrained('roberta-base', return_dict=True)
+
+def clsXlnet():
+  from transformers import XLNetForSequenceClassification
+  return XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', return_dict=True)
+
+def getSwitcher(withDebias = True):
+  if withDebias:
+    switcher = {
+
+    }
+
+def getClassifier(model, debias=True):
+  if debias:
+    switcher = {
+
+    }
+  else:
+    switcher = {
+      'bert': clsBert,
+      'gpt2': clsGpt2,
+      'roberta': clsRoberta,
+      'xlnet': clsXlnet
+    }
+  return switcher.get(model, None)()
+
+def getAttentionMask(attention_mask, batch_size, dtype):
+  attention_mask = attention_mask.view(batch_size, -1)
+  attention_mask = attention_mask[:, None, None, :]
+  attention_mask = attention_mask.to(dtype=dtype)  # fp16 compatibility
+  attention_mask = (1.0 - attention_mask) * -10000.0
+  return attention_mask
