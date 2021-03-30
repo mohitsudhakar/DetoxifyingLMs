@@ -2,6 +2,9 @@ import numpy as np
 import torch
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+# import nvsmi
+
+from Local_classifier.models.bert import BertClassifier, DeBertClassifier
 
 
 def plotGraph(y, title=""):
@@ -32,6 +35,9 @@ def getPrincipalComponents(D, num_comp=None):
   ev = pca.explained_variance_
   return torch.Tensor(np.array(pca.components_)), np.array(ev_percent), np.array(ev)
 
+
+# def getMemUtil(msg=''):
+#   print(msg, str(list(nvsmi.get_gpus())[0]).split(' | ')[3])
 
 def projection(a, b):
   inner = torch.mm(a, b.T)
@@ -81,41 +87,27 @@ def getPretrained(model):
   return switcher.get(model, (None, None))()
 
 
-def clsBert():
-  from transformers import BertForSequenceClassification
-  return BertForSequenceClassification.from_pretrained('bert-base-uncased', return_dict=True)
-
-def clsGpt2():
-  from transformers import GPT2ForSequenceClassification
-  return GPT2ForSequenceClassification.from_pretrained('gpt2', return_dict=True)
-
-def clsRoberta():
-  from transformers import RobertaForSequenceClassification
-  return RobertaForSequenceClassification.from_pretrained('roberta-base', return_dict=True)
-
-def clsXlnet():
-  from transformers import XLNetForSequenceClassification
-  return XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', return_dict=True)
-
 def getSwitcher(withDebias = True):
   if withDebias:
     switcher = {
-
-    }
-
-def getClassifier(model, debias=True):
-  if debias:
-    switcher = {
-
+      'bert': DeBertClassifier,
+      # 'gpt2': clsGpt2,
+      # 'roberta': clsRoberta,
+      # 'xlnet': clsXlnet
     }
   else:
     switcher = {
-      'bert': clsBert,
-      'gpt2': clsGpt2,
-      'roberta': clsRoberta,
-      'xlnet': clsXlnet
+      'bert': BertClassifier,
+      # 'gpt2': Gpt2Classifier(),
+      # 'roberta': clsRoberta,
+      # 'xlnet': clsXlnet
     }
-  return switcher.get(model, None)()
+  return switcher
+
+
+def getClassifier(modelname, withDebias=True):
+  return getSwitcher(withDebias).get(modelname, None)()
+
 
 def getAttentionMask(attention_mask, batch_size, dtype):
   attention_mask = attention_mask.view(batch_size, -1)

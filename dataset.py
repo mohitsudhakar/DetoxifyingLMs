@@ -5,7 +5,6 @@ from torch.utils.data.dataset import Dataset
 class ToxicityDataset(Dataset):
     def __init__(self, toxic_df, nontox_df, tokenizer, batch_size):
 
-        self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.texts = []
         self.labels = []

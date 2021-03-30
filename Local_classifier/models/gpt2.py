@@ -1,15 +1,29 @@
 import torch
 import torch.nn as nn
+from transformers import GPT2Model
 
-from model_utils import getPrincipalComponents, projection
+from model_utils import getPrincipalComponents, projection, initGpt2
 
 
+class Gpt2Classifier(nn.Module):
+    def __init__(self):
+        super(Gpt2Classifier, self).__init__()
+        _, self.model = initGpt2()
+        self.fc = nn.Linear(768, 2)
+        self.dropout = nn.Dropout(0.1)
 
-class DetoxGptClassifier(nn.Module):
+    def forward(self, inp, attn_masks):
+        out = self.model(inp, attn_masks)
+        out = out.pooler_output
+        out = self.fc(out)
+        return out
 
-    def __init__(self, cls_model, debias=False):
-        super(DetoxGptClassifier, self).__init__()
-        self.gpt2 = cls_model.transformer
+
+class DeGpt2Classifier(nn.Module):
+
+    def __init__(self, debias=False):
+        super(DeGpt2Classifier, self).__init__()
+        _, self.gpt2 = initGpt2()
         self.wte = self.gpt2.wte
         self.wpe = self.gpt2.wpe
         self.drop = self.gpt2.drop
@@ -17,8 +31,8 @@ class DetoxGptClassifier(nn.Module):
         self.blocks = self.gpt2.h
         self.dtype = self.gpt2.dtype
 
-        self.ln_f = cls_model.ln_f
-        self.fc = cls_model.score
+        self.ln_f = self.gpt2.ln_f
+        self.fc = nn.Linear(768, 2)
         self.debias = debias
 
 

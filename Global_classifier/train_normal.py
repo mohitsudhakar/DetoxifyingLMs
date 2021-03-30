@@ -6,7 +6,7 @@ from torch.optim import SGD
 from torch.utils.data import DataLoader, random_split
 from transformers import get_linear_schedule_with_warmup
 
-from Global_classifier.debert_global import DeBertGlobalClassifier
+from Global_classifier.debert_global import BertGlobalClassifier
 from Local_debias.utils.data_utils import DataUtils
 from dataset import ToxicityDataset
 import model_utils
@@ -26,24 +26,15 @@ tokenizer, base_model = model_utils.getPretrained(model_name)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 data_path = 'data/'
-pc_file = data_path + 'princComp.txt'
-import numpy as np
 
-loaded_list = np.loadtxt(pc_file, delimiter=" ")
-
-# with open(pc_file,"r") as f:
-#     loaded_list = eval(f.read())
-
-pcs = torch.FloatTensor(loaded_list)
-print('pcs shape', pcs.shape)
-cls_model = DeBertGlobalClassifier(bias_subspace=pcs, device=device)
+cls_model = BertGlobalClassifier(device=device)
 
 """ model_save_name = 'model.pt' """
-# model_save_name = args.model_save_name
+model_save_name = args.model_save_name
 # path = F"{model_save_name}"
 # cls_model.load_state_dict(torch.load(path))
 
-# cls_model = cls_model.cuda()
+cls_model = cls_model.to(device)
 
 batch_size = 32
 num_workers = 2
@@ -101,6 +92,8 @@ val_loader = DataLoader(valset,
                         shuffle = False,
                         collate_fn = generate_batch)
 
+print('data loaders ready')
+
 total_steps = len(train_loader) * num_epochs
 optimizer = SGD(cls_model.parameters(), lr=0.0001)
 scheduler = get_linear_schedule_with_warmup(optimizer,
@@ -116,7 +109,10 @@ current_step = 0
 best_accuracy = 0
 # todo: Add SummaryWriter
 
-(dataset_size, train_size, val_size), len(train_loader), len(val_loader)
+print('dataset size, train, val')
+print((dataset_size, train_size, val_size), len(train_loader), len(val_loader))
+
+print('Starting training')
 
 for epoch in range(num_epochs):
 
@@ -129,9 +125,9 @@ for epoch in range(num_epochs):
 
   for batch_id, (inp_ids, attn_masks, labels) in enumerate(train_loader):
 
-    # inp_ids = inp_ids.cuda()
-    # attn_masks = attn_masks.cuda()
-    # labels = labels.cuda()
+    inp_ids = inp_ids.to(device)
+    attn_masks = attn_masks.to(device)
+    labels = labels.to(device)
 
     print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
     optimizer.zero_grad()
@@ -162,9 +158,9 @@ for epoch in range(num_epochs):
   num_samples = 0
   for (batch_id, (inp_ids, attn_masks, labels)) in enumerate(val_loader):
 
-    # inp_ids = inp_ids.cuda()
-    # attn_masks = attn_masks.cuda()
-    # labels = labels.cuda()
+    inp_ids = inp_ids.to(device)
+    attn_masks = attn_masks.to(device)
+    labels = labels.to(device)
 
     predicted = cls_model(inp_ids, attn_masks)
     loss = criterion(predicted, labels)
@@ -184,7 +180,7 @@ for epoch in range(num_epochs):
   # Save the parameters for the best accuracy on the validation set so far.
   if logs['val_accuracy'] > best_accuracy:
     best_accuracy = logs['val_accuracy']
-    path = F"/content/drive/My Drive/Models/{model_save_name}"
+    path = F"{model_save_name}"
     torch.save(cls_model.state_dict(), path)
 
 # !nvidia-smi

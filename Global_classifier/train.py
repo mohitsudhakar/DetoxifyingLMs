@@ -6,6 +6,7 @@ from torch.optim import SGD
 from torch.utils.data import DataLoader, random_split
 from transformers import get_linear_schedule_with_warmup
 
+from Global_classifier.debert_global import DeBertGlobalClassifier
 from Local_debias.utils.data_utils import DataUtils
 from dataset import ToxicityDataset
 import model_utils
@@ -18,10 +19,21 @@ parser.add_argument("-s", "--model_save_name")
 parser.add_argument("-d", "--debias", dest="debias", help="Debias, bool", action="store_true")
 args = parser.parse_args()
 
-model_name = args.model_name
+# model_name = args.model_name
+model_name = 'bert'
 tokenizer, base_model = model_utils.getPretrained(model_name)
-cls_model = model_utils.getClassifier(model_name, args.debias)
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+data_path = 'data/'
+pc_file = data_path + 'princComp.txt'
+import numpy as np
+
+loaded_list = np.loadtxt(pc_file, delimiter=" ")
+pcs = torch.FloatTensor(loaded_list)
+print('pcs shape', pcs.shape)
+
+cls_model = DeBertGlobalClassifier(bias_subspace=pcs, device=device)
 
 """ model_save_name = 'model.pt' """
 model_save_name = args.model_save_name
@@ -36,20 +48,27 @@ num_epochs = 10
 
 """**Training Classifier**"""
 
+print('Data Preprocessing (4 steps)')
 
 dataClass = DataUtils(model_name)
 
 df, toxic_df, nontox_df = dataClass.readToxFile()
-wsentAll, wsentTox, wsentNT = dataClass.readWordToSentFiles()
-sAll, sTox, sNT = dataClass.readWordScores()
+print('step1')
+wsentAll, wsentTox, wsentNT = dataClass.readWordToSentFiles(data_path)
+print('step2')
+sAll, sTox, sNT = dataClass.readWordScores(data_path)
+print('step3')
 ht = dataClass.process(sAll, sTox, sNT)
+print('step4')
 
 # Init datasets
 dataset = ToxicityDataset(toxic_df=toxic_df, nontox_df=nontox_df, tokenizer=tokenizer, batch_size=batch_size)
 dataset_size = len(dataset)
 train_size = int(dataset_size*0.8)
 val_size = dataset_size - train_size
+print('train size', train_size, 'val size', val_size)
 trainset, valset = random_split(dataset, [train_size, val_size])
+
 
 def generate_batch(batch):
 
@@ -79,6 +98,8 @@ val_loader = DataLoader(valset,
                         shuffle = False,
                         collate_fn = generate_batch)
 
+print('data loaders ready')
+
 total_steps = len(train_loader) * num_epochs
 optimizer = SGD(cls_model.parameters(), lr=0.0001)
 scheduler = get_linear_schedule_with_warmup(optimizer,
@@ -94,7 +115,10 @@ current_step = 0
 best_accuracy = 0
 # todo: Add SummaryWriter
 
-(dataset_size, train_size, val_size), len(train_loader), len(val_loader)
+print('dataset size, train, val')
+print((dataset_size, train_size, val_size), len(train_loader), len(val_loader))
+
+print('Starting training')
 
 for epoch in range(num_epochs):
 
@@ -111,13 +135,13 @@ for epoch in range(num_epochs):
     # attn_masks = attn_masks.cuda()
     # labels = labels.cuda()
 
-    # print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
+    print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
     optimizer.zero_grad()
 
-    predicted = cls_model(inp_ids, inp_ids, attn_masks)
+    predicted = cls_model(inp_ids, attn_masks)
     loss = criterion(predicted, labels)
-    print('pred', predicted.shape) # batch_size x 2
-
+    # print('pred', predicted.shape, predicted[0]) # batch_size x 2
+    print('loss', loss)
     train_loss += loss.item()
     loss.backward()
     optimizer.step()
@@ -144,9 +168,9 @@ for epoch in range(num_epochs):
     # attn_masks = attn_masks.cuda()
     # labels = labels.cuda()
 
-    predicted = cls_model(inp_ids, inp_ids, attn_masks)
+    predicted = cls_model(inp_ids, attn_masks)
     loss = criterion(predicted, labels)
-
+    print('val loss', loss)
     val_loss += loss.item()
     # compute accuracy
     val_acc += (predicted.argmax(1) == labels).sum().item()
@@ -162,7 +186,7 @@ for epoch in range(num_epochs):
   # Save the parameters for the best accuracy on the validation set so far.
   if logs['val_accuracy'] > best_accuracy:
     best_accuracy = logs['val_accuracy']
-    path = F"/content/drive/My Drive/Models/{model_save_name}"
+    path = F"{model_save_name}"
     torch.save(cls_model.state_dict(), path)
 
 # !nvidia-smi

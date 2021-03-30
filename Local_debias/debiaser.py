@@ -3,6 +3,8 @@ import torch
 from Local_debias.algorithm import sentence_debias, group_debias
 import nvsmi
 
+from model_utils import getMemUtil
+
 
 class Debiaser:
 
@@ -166,3 +168,22 @@ class Debiaser:
         print(count)
 
         return ev_percent, ev
+
+    def run_bert_algorithm_with_inc_pca(t_inputs, nt_inputs, model, device, incPca):
+        # inputs are encoded sentences
+        model = model.to(device)
+        t_inputs = t_inputs.to(device)
+        nt_inputs = nt_inputs.to(device)
+        t_out = model(**t_inputs)
+        nt_out = model(**nt_inputs)
+        pool_tox = t_out.pooler_output
+        pool_ntox = nt_out.pooler_output
+        print('Pooled shapes', pool_tox.shape, pool_ntox.shape)
+
+        D = pool_tox - pool_ntox
+        print('D shape', D.shape)
+        diff_vector = D.cpu().detach().numpy()
+        incPca.partial_fit(diff_vector)
+        getMemUtil('run')
+        print(torch.Tensor(np.array(incPca.components_)).shape)
+        torch.cuda.empty_cache()

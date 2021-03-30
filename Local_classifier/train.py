@@ -8,27 +8,27 @@ from transformers import get_linear_schedule_with_warmup
 
 from Local_debias.utils.data_utils import DataUtils
 from dataset import ToxicityDataset
-from model_utils import getPretrained, getClassifier
+import model_utils
 
 """**BERT Toxicity Classifier**"""
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model_name", help="bert, roberta, gpt2, xlnet")
 parser.add_argument("-s", "--model_save_name")
-parser.add_argument("-d", "--debias", help="Debias, bool")
+parser.add_argument("-d", "--debias", dest="debias", help="Debias, bool", action="store_true")
 args = parser.parse_args()
 
 model_name = args.model_name
-tokenizer, base_model = getPretrained(model_name)
-cls_model = getClassifier(model_name, args.debias)
+tokenizer, base_model = model_utils.getPretrained(model_name)
+cls_model = model_utils.getClassifier(model_name, args.debias)
 
 
 """ model_save_name = 'model.pt' """
 model_save_name = args.model_save_name
-path = F"{model_save_name}"
-cls_model.load_state_dict(torch.load(path))
+# path = F"{model_save_name}"
+# cls_model.load_state_dict(torch.load(path))
 
-cls_model = cls_model.cuda()
+# cls_model = cls_model.cuda()
 
 batch_size = 32
 num_workers = 2
@@ -40,9 +40,9 @@ num_epochs = 10
 dataClass = DataUtils(model_name)
 
 df, toxic_df, nontox_df = dataClass.readToxFile()
-# wsentAll, wsentTox, wsentNT = dataClass.readWordToSentFiles()
-# sAll, sTox, sNT = dataClass.readWordScores()
-# ht = dataClass.process(sAll, sTox, sNT)
+wsentAll, wsentTox, wsentNT = dataClass.readWordToSentFiles()
+sAll, sTox, sNT = dataClass.readWordScores()
+ht = dataClass.process(sAll, sTox, sNT)
 
 # Init datasets
 dataset = ToxicityDataset(toxic_df=toxic_df, nontox_df=nontox_df, tokenizer=tokenizer, batch_size=batch_size)
@@ -107,9 +107,9 @@ for epoch in range(num_epochs):
 
   for batch_id, (inp_ids, attn_masks, labels) in enumerate(train_loader):
 
-    inp_ids = inp_ids.cuda()
-    attn_masks = attn_masks.cuda()
-    labels = labels.cuda()
+    # inp_ids = inp_ids.cuda()
+    # attn_masks = attn_masks.cuda()
+    # labels = labels.cuda()
 
     # print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
     optimizer.zero_grad()
@@ -139,9 +139,10 @@ for epoch in range(num_epochs):
   val_acc = 0
   num_samples = 0
   for (batch_id, (inp_ids, attn_masks, labels)) in enumerate(val_loader):
-    inp_ids = inp_ids.cuda()
-    attn_masks = attn_masks.cuda()
-    labels = labels.cuda()
+
+    # inp_ids = inp_ids.cuda()
+    # attn_masks = attn_masks.cuda()
+    # labels = labels.cuda()
 
     predicted = cls_model(inp_ids, inp_ids, attn_masks)
     loss = criterion(predicted, labels)
@@ -161,7 +162,6 @@ for epoch in range(num_epochs):
   # Save the parameters for the best accuracy on the validation set so far.
   if logs['val_accuracy'] > best_accuracy:
     best_accuracy = logs['val_accuracy']
-    model_save_name = 'toxic_normal_cls.pt'
     path = F"/content/drive/My Drive/Models/{model_save_name}"
     torch.save(cls_model.state_dict(), path)
 

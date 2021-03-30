@@ -2,18 +2,19 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import BertTokenizer, BertModel
-from model_utils import getPrincipalComponents, projection
+import model_utils
+
 
 class BertClassifier(nn.Module):
     def __init__(self):
         super(BertClassifier, self).__init__()
-        self.bert = BertModel.from_pretrained('bert-base-uncased')
+        _, self.model = model_utils.initBert()
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, inp, attn_masks):
 
-        out = self.bert(inp, attn_masks)
+        out = self.model(inp, attn_masks)
         out = out.pooler_output
         out = self.fc(out)
         return out
@@ -21,32 +22,33 @@ class BertClassifier(nn.Module):
 
 class DeBertClassifier(nn.Module):
     def __init__(self, debias=True):
-      super(DeBertClassifier, self).__init__()
+        super(DeBertClassifier, self).__init__()
 
-      self.bert = model = BertModel.from_pretrained('bert-base-uncased')
-      self.emb = model.embeddings
-      self.layers = model.encoder.layer
-      self.pooler = model.pooler
-      self.fc = nn.Linear(768, 2)
-      self.dropout = nn.Dropout(0.1)
-      self.debias = debias
+        _, self.model = model_utils.initBert()
+        model = self.model
+        self.emb = model.embeddings
+        self.layers = model.encoder.layer
+        self.pooler = model.pooler
+        self.fc = nn.Linear(768, 2)
+        self.dropout = nn.Dropout(0.1)
+        self.debias = debias
 
     def forward(self, inp_t, attn_masks, inp_nt):
 
-      u = self.emb(inp_t, attn_masks)
-      v = self.emb(inp_nt, attn_masks)
-      D = u - v  # todo: check dim, torch. ?
-      print('D.shape', D.shape)
-      # Local - per sentence
-      D = D.squeeze(dim=0)
-      pc, _, _ = getPrincipalComponents(D)
-      # pc = pc.cuda()
+        u = self.emb(inp_t, attn_masks)
+        v = self.emb(inp_nt, attn_masks)
+        D = u - v  # todo: check dim, torch. ?
+        print('D.shape', D.shape)
+        # Local - per sentence
+        D = D.squeeze(dim=0)
+        pc, _, _ = model_utils.getPrincipalComponents(D)
+        # pc = pc.cuda()
 
-      for j in range(1, 13):
+        for j in range(1, 13):
           uproj, vproj = u, v
           if self.debias:
-              uproj = projection(u[0], pc)
-              vproj = projection(v[0], pc)
+              uproj = model_utils.projection(u[0], pc)
+              vproj = model_utils.projection(v[0], pc)
               uproj = uproj.unsqueeze(dim=0)
               vproj = vproj.unsqueeze(dim=0)
 
@@ -55,20 +57,20 @@ class DeBertClassifier(nn.Module):
 
           device = uproj.device
           input_shape = uproj.size()
-          ext_attn_mask: torch.Tensor = self.bert.get_extended_attention_mask(attn_masks, input_shape, device)
+          ext_attn_mask: torch.Tensor = self.model.get_extended_attention_mask(attn_masks, input_shape, device)
           u = self.layers[j - 1](uproj, ext_attn_mask)[0]
           v = self.layers[j - 1](vproj, ext_attn_mask)[0]
           D = u - v  # todo: check dim, torch. ?
           # Local - per sentence
           D = D.squeeze(dim=0)
-          pc, _, _ = getPrincipalComponents(D)
+          pc, _, _ = model_utils.getPrincipalComponents(D)
           # pc = pc.cuda()
 
-      out = self.pooler(u)
-      # out = self.dropout(out)
-      out = self.fc(out)
-      print(out)
-      return out
+        out = self.pooler(u)
+        # out = self.dropout(out)
+        out = self.fc(out)
+        print(out)
+        return out
 
 
 
