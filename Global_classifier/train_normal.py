@@ -53,6 +53,7 @@ if __name__ == '__main__':
   batch_size = 32
   num_workers = 2
   num_epochs = 10
+  step_size = 100
 
   """**Training Classifier**"""
 
@@ -154,13 +155,14 @@ if __name__ == '__main__':
       train_acc += (predicted.argmax(1) == labels).sum().item()
       num_samples += inp_ids.size(0)
 
-      if (1 + batch_id) % 10 == 0:
+      if (1 + batch_id) % step_size == 0:
         print(epoch, batch_id, train_acc / num_samples)
-        logs['loss'] = train_loss / num_samples
-        logs['accuracy'] = train_acc / num_samples
-        liveloss.update(logs)
-        liveloss.send()
-        current_step += 1
+        writer.add_scalar('validation loss',
+                          train_loss / num_samples,
+                          epoch * len(val_loader) + batch_id)
+        writer.add_scalar('validation accuracy',
+                          train_acc / num_samples,
+                          epoch * len(val_loader) + batch_id)
 
     scheduler.step()
 
@@ -182,11 +184,13 @@ if __name__ == '__main__':
       val_acc += (predicted.argmax(1) == labels).sum().item()
       num_samples += inp_ids.size(0)
 
-      if (1 + batch_id) % 10 == 0:
-        logs['val_loss'] = val_loss / num_samples
-        logs['val_accuracy'] = val_acc / num_samples
-        liveloss.update(logs, current_step)
-        liveloss.send()
+      if (1 + batch_id) % step_size == 0:
+        writer.add_scalar('validation loss',
+                          val_loss / num_samples,
+                          epoch * len(val_loader) + batch_id)
+        writer.add_scalar('validation accuracy',
+                          val_acc / num_samples,
+                          epoch * len(val_loader) + batch_id)
 
 
     # Save the parameters for the best accuracy on the validation set so far.

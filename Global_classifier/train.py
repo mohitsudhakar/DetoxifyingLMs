@@ -60,6 +60,7 @@ if __name__ == '__main__':
     batch_size = 32
     num_workers = 2
     num_epochs = 10
+    step_size = 100
 
     """**Training Classifier**"""
 
@@ -150,13 +151,12 @@ if __name__ == '__main__':
         attn_masks = attn_masks.to(device)
         labels = labels.to(device)
 
-        print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
+        # print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
         optimizer.zero_grad()
 
         predicted = cls_model(inp_ids, attn_masks)
         loss = criterion(predicted, labels)
         # print('pred', predicted.shape, predicted[0]) # batch_size x 2
-        print('loss', loss)
         train_loss += loss.item()
 
         loss.backward()
@@ -164,7 +164,7 @@ if __name__ == '__main__':
         train_acc += (predicted.argmax(1) == labels).sum().item()
         num_samples += inp_ids.size(0)
 
-        if (1 + batch_id) % 1 == 0:
+        if (1 + batch_id) % step_size == 0:
           print(epoch, batch_id, train_acc / num_samples)
           writer.add_scalar('training loss',
                             train_loss / num_samples,
@@ -172,6 +172,7 @@ if __name__ == '__main__':
           writer.add_scalar('training accuracy',
                             train_acc / num_samples,
                             epoch * len(train_loader) + batch_id)
+
 
 
       scheduler.step()
@@ -188,13 +189,13 @@ if __name__ == '__main__':
 
         predicted = cls_model(inp_ids, attn_masks)
         loss = criterion(predicted, labels)
-        print('val loss', loss)
+        # print('val loss', loss)
         val_loss += loss.item()
         # compute accuracy
         val_acc += (predicted.argmax(1) == labels).sum().item()
         num_samples += inp_ids.size(0)
 
-        if (1 + batch_id) % 1 == 0:
+        if (1 + batch_id) % step_size == 0:
             writer.add_scalar('validation loss',
                               val_loss / num_samples,
                               epoch * len(val_loader) + batch_id)
