@@ -142,13 +142,13 @@ if __name__ == '__main__':
       attn_masks = attn_masks.to(device)
       labels = labels.to(device)
 
-      print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
+      # print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
       optimizer.zero_grad()
 
       predicted = cls_model(inp_ids, attn_masks)
       loss = criterion(predicted, labels)
       # print('pred', predicted.shape, predicted[0]) # batch_size x 2
-      print('loss', loss)
+      # print('loss', loss)
       train_loss += loss.item()
       loss.backward()
       optimizer.step()
