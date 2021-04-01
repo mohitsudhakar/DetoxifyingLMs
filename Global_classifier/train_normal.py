@@ -14,6 +14,7 @@ import model_utils
 from Global_classifier.debert_global import BertGlobalClassifier
 from Local_debias.utils.data_utils import DataUtils
 from dataset import ToxicityDataset
+from gpu_utils import getFreeGpu
 
 if __name__ == '__main__':
 
@@ -30,7 +31,10 @@ if __name__ == '__main__':
   model_name = args.model_name if args.model_name else 'bert'
   tokenizer, base_model = model_utils.getPretrained(model_name)
 
-  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  device = torch.device('cpu')
+  if torch.cuda.is_available():
+    device = torch.device('cuda' + str(getFreeGpu()))
+
   print('Device', device)
 
   data_path = args.data_path if args.data_path else '../data/'
