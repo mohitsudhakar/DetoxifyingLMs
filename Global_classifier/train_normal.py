@@ -22,6 +22,7 @@ if __name__ == '__main__':
   parser.add_argument("-m", "--model_name", help="bert, roberta, gpt2, xlnet")
   parser.add_argument("-s", "--model_save_name")
   parser.add_argument("-d", "--debias", dest="debias", help="Debias, bool", action="store_true")
+  parser.add_argument("-p", "--data_path", help="Data path, data/")
   args = parser.parse_args()
 
   writer = SummaryWriter('runs/bert_global_cls')

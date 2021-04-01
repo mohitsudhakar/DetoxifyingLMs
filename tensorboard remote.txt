@@ -1,0 +1,22 @@
+You can port-forward with another ssh command that need not be tied to how you are connecting to the server
+(as an alternative to the other answer). Thus, the ordering of the below steps is arbitrary.
+
+From your local machine, run
+
+ssh -N -f -L localhost:16006:localhost:6006 <user@remote>
+
+On the remote machine, run:
+
+tensorboard --logdir <path> --port 6006
+
+Then, navigate to (in this example) http://localhost:16006 on your local machine.
+
+(explanation of ssh command:
+
+-N : no remote commands
+
+-f : put ssh in the background
+
+-L <machine1>:<portA>:<machine2>:<portB> :
+
+forward <machine1>:<portA> (local scope) to <machine2>:<portB> (remote scope)
