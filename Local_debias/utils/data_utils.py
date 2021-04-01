@@ -8,11 +8,11 @@ class DataUtils:
 
     def __init__(self, model):
         self.path = 'data/'
-        self.datapath = self.path + model + '/'
 
     def readToxFile(self, path=None):
         if not path:
-            path = self.path + 'toxic.tsv'
+            path = self.path
+        path += 'toxic.tsv'
         rows = []
         with open(path, 'r') as f:
             lines = f.readlines()
@@ -43,7 +43,7 @@ class DataUtils:
 
     def readWordToSentFiles(self, path=None):
         if not path:
-            path = self.datapath
+            path = self.path
         with open(path+'wsentAll.json') as f1:
             wsentAll = json.load(f1)
         with open(path+'wsentTox.json') as f2:
@@ -55,7 +55,7 @@ class DataUtils:
 
     def readWordScores(self, path=None):
         if not path:
-            path = self.datapath
+            path = self.path
 
         wordScoresAll = pd.read_pickle(path + 'wordScoresAll.pkl')
         wordScoresTox = pd.read_pickle(path + 'wordScoresTox.pkl')
