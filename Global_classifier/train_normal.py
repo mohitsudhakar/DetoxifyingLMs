@@ -31,15 +31,17 @@ if __name__ == '__main__':
   model_name = args.model_name if args.model_name else 'bert'
   tokenizer, base_model = model_utils.getPretrained(model_name)
 
-  device = torch.device('cpu')
-  if torch.cuda.is_available():
-    device = torch.device('cuda' + str(getFreeGpu()))
+  device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+  # device = torch.device('cpu')
+  # if torch.cuda.is_available():
+  #   device = torch.device('cuda:' + str(getFreeGpu()))
 
   print('Device', device)
 
   data_path = args.data_path if args.data_path else '../data/'
 
   cls_model = BertGlobalClassifier()
+  cls_model = nn.DataParallel(cls_model)
 
   """ model_save_name = 'model.pt' """
   model_save_name = args.model_save_name if args.model_save_name else 'bertG.pt'
