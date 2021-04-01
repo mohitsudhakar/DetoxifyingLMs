@@ -33,10 +33,10 @@ if __name__ == '__main__':
     model_name = args.model_name if args.model_name else 'bert'
     tokenizer, base_model = model_utils.getPretrained(model_name)
 
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    # device = torch.device('cpu')
-    # if torch.cuda.is_available():
-    #   device = torch.device('cuda:' + str(getFreeGpu()))
+    # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cpu')
+    if torch.cuda.is_available():
+      device = torch.device('cuda:' + str(getFreeGpu()))
 
     print('Device', device)
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     print('pcs shape', pcs.shape)
 
     cls_model = DeBertGlobalClassifier(bias_subspace=pcs)
-    cls_model = nn.DataParallel(cls_model)
+    # cls_model = nn.DataParallel(cls_model)
     cls_model = cls_model.to(device)
 
     model_save_name = args.model_save_name if args.model_save_name else 'debertG.pt'
