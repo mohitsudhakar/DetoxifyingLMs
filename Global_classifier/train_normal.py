@@ -4,9 +4,10 @@ import argparse
 
 import torch
 from livelossplot import PlotLosses
+from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.optim import SGD
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, SubsetRandomSampler
 from torch.utils.tensorboard import SummaryWriter
 from transformers import get_linear_schedule_with_warmup
 
@@ -55,28 +56,38 @@ if __name__ == '__main__':
   num_epochs = 10
   step_size = 100
 
-  """**Training Classifier**"""
-
   print('Data Preprocessing (4 steps)')
 
   dataClass = DataUtils(model_name)
-
+  print('1. Read file, get df')
   df, toxic_df, nontox_df = dataClass.readToxFile(path=data_path)
-  print('step1')
+  print('2. Get word to sentence dict')
   wsentAll, wsentTox, wsentNT = dataClass.readWordToSentFiles(path=data_path)
-  print('step2')
+  print('3. Get word scores dict')
   sAll, sTox, sNT = dataClass.readWordScores(path=data_path)
-  print('step3')
-  ht = dataClass.process(sAll, sTox, sNT)
-  print('step4')
+  # print('4. Process to get final dataframe')
+  # ht = dataClass.process(sAll, sTox, sNT)
+
+  print('Creating train and valiation sets')
+
+  validation_split = 0.2
+  shuffle = True
+  random_seed = 42
 
   # Init datasets
   dataset = ToxicityDataset(toxic_df=toxic_df, nontox_df=nontox_df, tokenizer=tokenizer, batch_size=batch_size)
   dataset_size = len(dataset)
-  train_size = int(dataset_size*0.8)
-  val_size = dataset_size - train_size
-  print('train size', train_size, 'val size', val_size)
-  trainset, valset = random_split(dataset, [train_size, val_size])
+
+  #######
+  indices = list(range(dataset_size))
+  train_indices, test_indices = train_test_split(indices, test_size=validation_split, stratify=dataset.labels)
+  train_sampler = SubsetRandomSampler(train_indices)
+  test_sampler = SubsetRandomSampler(test_indices)
+  #######
+
+  # val_size = dataset_size - train_size
+  # print('train size', train_size, 'val size', val_size)
+  # trainset, valset = random_split(dataset, [train_size, val_size])
 
 
   def generate_batch(batch):
@@ -96,18 +107,20 @@ if __name__ == '__main__':
     return inp_ids, attn_masks, labels
 
   # Init data loaders
-  train_loader = DataLoader(trainset,
+  train_loader = DataLoader(dataset,
                             batch_size = batch_size,
                             num_workers = num_workers,
                             shuffle = True,
-                            collate_fn = generate_batch)
-  val_loader = DataLoader(valset,
+                            collate_fn = generate_batch,
+                            sampler=train_sampler)
+  val_loader = DataLoader(dataset,
                           batch_size = batch_size,
                           num_workers = num_workers,
                           shuffle = False,
-                          collate_fn = generate_batch)
+                          collate_fn = generate_batch,
+                          sampler=test_sampler)
 
-  print('data loaders ready')
+  print('Data Loaders ready')
 
   total_steps = len(train_loader) * num_epochs
   optimizer = SGD(cls_model.parameters(), lr=0.0001)
@@ -123,7 +136,7 @@ if __name__ == '__main__':
   # todo: Add SummaryWriter
 
   print('dataset size, train, val')
-  print((dataset_size, train_size, val_size), len(train_loader), len(val_loader))
+  print(dataset_size, len(train_loader), len(val_loader))
 
   print('Starting training')
 
@@ -159,10 +172,10 @@ if __name__ == '__main__':
         print(epoch, batch_id, train_acc / num_samples)
         writer.add_scalar('training loss',
                           train_loss / num_samples,
-                          epoch * len(val_loader) + batch_id)
+                          epoch * len(train_loader) + batch_id)
         writer.add_scalar('training accuracy',
                           train_acc / num_samples,
-                          epoch * len(val_loader) + batch_id)
+                          epoch * len(train_loader) + batch_id)
 
     scheduler.step()
 
