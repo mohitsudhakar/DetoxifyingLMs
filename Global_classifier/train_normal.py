@@ -194,8 +194,8 @@ if __name__ == '__main__':
 
 
     # Save the parameters for the best accuracy on the validation set so far.
-    if logs['val_accuracy'] > best_accuracy:
-      best_accuracy = logs['val_accuracy']
+    if val_acc / num_samples > best_accuracy:
+      best_accuracy = val_acc / num_samples
       path = F"{model_save_name}"
       torch.save(cls_model.state_dict(), path)
 
