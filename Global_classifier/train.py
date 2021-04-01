@@ -45,6 +45,7 @@ if __name__ == '__main__':
 
     loaded_list = np.loadtxt(pc_file, delimiter=" ")
     pcs = torch.FloatTensor(loaded_list)
+    pcs = pcs.to(device)
     print('pcs shape', pcs.shape)
 
     cls_model = DeBertGlobalClassifier(bias_subspace=pcs)
