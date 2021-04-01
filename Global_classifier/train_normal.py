@@ -157,10 +157,10 @@ if __name__ == '__main__':
 
       if (1 + batch_id) % step_size == 0:
         print(epoch, batch_id, train_acc / num_samples)
-        writer.add_scalar('validation loss',
+        writer.add_scalar('training loss',
                           train_loss / num_samples,
                           epoch * len(val_loader) + batch_id)
-        writer.add_scalar('validation accuracy',
+        writer.add_scalar('training accuracy',
                           train_acc / num_samples,
                           epoch * len(val_loader) + batch_id)
 
