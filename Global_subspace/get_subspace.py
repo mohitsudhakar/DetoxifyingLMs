@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 import model_utils
+from gpu_utils import getFreeGpu
 from model_utils import initBert
 
 # !wget http://cs.virginia.edu/~ms5sw/detox/toxic_sents.txt
@@ -52,7 +53,9 @@ if __name__ == '__main__':
 
     # model = bert_model
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')
+    if torch.cuda.is_available():
+        device = torch.device('cuda:' + str(getFreeGpu()))
 
     from sklearn.decomposition import IncrementalPCA
     incPca = IncrementalPCA(n_components=num_components)
