@@ -22,10 +22,10 @@ if __name__ == '__main__':
     seq_len = 128
     emb_dim = 768
     num_layers = 12
-    batch_size = args.batch_size if args.batch_size else 50
+    batch_size = int(args.batch_size) if args.batch_size else 50
     num_words = 100
     num_sents = 300
-    num_components = args.num_components
+    num_components = int(args.num_components) if args.num_components else 50
     count = num_sents*num_words
 
     if num_components > batch_size:
