@@ -122,13 +122,11 @@ if __name__ == '__main__':
     train_loader = DataLoader(dataset,
                               batch_size=batch_size,
                               num_workers=num_workers,
-                              shuffle=True,
                               collate_fn=generate_batch,
                               sampler=train_sampler)
     val_loader = DataLoader(dataset,
                             batch_size=batch_size,
                             num_workers=num_workers,
-                            shuffle=False,
                             collate_fn=generate_batch,
                             sampler=test_sampler)
 
