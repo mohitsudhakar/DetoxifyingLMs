@@ -26,7 +26,11 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--model_save_name")
     parser.add_argument("-d", "--debias", dest="debias", help="Debias, bool", action="store_true")
     parser.add_argument("-p", "--data_path", help="Data path, data/")
+    parser.add_argument("-f", "--subspace_file", help="Subspace matrix filename")
     args = parser.parse_args()
+    if not args.subspace_file:
+        print("Subspace file required for running Debert!")
+        exit(1)
 
     # default `log_dir` is "runs" - we'll be more specific here
     writer = SummaryWriter('runs/debert_global_cls')
@@ -42,7 +46,7 @@ if __name__ == '__main__':
     print('Device', device)
 
     data_path = args.data_path if args.data_path else '../data/'
-    pc_file = data_path + 'princComp.txt'
+    pc_file = args.subspace_file
 
     loaded_list = np.loadtxt(pc_file, delimiter=" ")
     pcs = torch.FloatTensor(loaded_list)
