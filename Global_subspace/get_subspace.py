@@ -104,7 +104,8 @@ ev = np.array(incPca.explained_variance_)
 
 print('Saving PC matrix to file')
 
-with open('princComp_top' + str(num_words) + '_comp' + str(num_components) +  '.txt', 'w') as f:
+filename = 'princComp_top' + str(num_words) + '_comp' + str(num_components)
+with open(filename +  '.txt', 'w') as f:
   np.savetxt(f, pcs)
 
 print('Finished working on', batch_no, 'batches')
@@ -118,8 +119,8 @@ def plotVariance(y, title=""):
   plt.show()
   plt.savefig(title)
 
-plotVariance(ev_ratio, title='EV Ratio')
-plotVariance(ev, title='EV Values')
+plotVariance(ev_ratio, title='EV Ratio_'+filename)
+plotVariance(ev, title='EV Values_'+filename)
 
 pc_tensor = torch.FloatTensor(pcs)
 print(pc_tensor.shape)
