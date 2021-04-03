@@ -90,6 +90,9 @@ if __name__ == '__main__':
       print('Batch', batch_no)
       t_sents = toxic_sents[i:i+batch_size]
       nt_sents = non_toxic_sents[i:i+batch_size]
+      if len(t_sents) < num_components:
+        # ignore last few
+        break
       inputs = tokenizer(
               t_sents, add_special_tokens=True, truncation=True,
               max_length=seq_len, padding='max_length',
