@@ -9,7 +9,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--data_path", help="Data path, data/")
     args = parser.parse_args()
 
-    num_words = args.num_words
+    num_words = int(args.num_words)
     data_path = args.data_path
     t_path = data_path + 'toxic_sents_'+str(num_words)+'.txt'
     nt_path = data_path + 'non_toxic_sents_'+str(num_words)+'.txt'
