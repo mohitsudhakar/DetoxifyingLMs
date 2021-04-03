@@ -1,4 +1,4 @@
-import nvsmi
+# import nvsmi
 import numpy as np
 
 def getFreeGpu():

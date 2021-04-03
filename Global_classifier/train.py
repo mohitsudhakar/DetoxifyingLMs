@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     print('Data Preprocessing (4 steps)')
 
-    dataClass = DataUtils(model_name)
+    dataClass = DataUtils()
     print('1. Read file, get df')
     df, toxic_df, nontox_df = dataClass.readToxFile(path=data_path)
     print('2. Get word to sentence dict')

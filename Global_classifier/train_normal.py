@@ -23,7 +23,6 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument("-m", "--model_name", help="bert, roberta, gpt2, xlnet")
   parser.add_argument("-s", "--model_save_name")
-  parser.add_argument("-d", "--debias", dest="debias", help="Debias, bool", action="store_true")
   parser.add_argument("-p", "--data_path", help="Data path, data/")
   args = parser.parse_args()
 
@@ -58,7 +57,7 @@ if __name__ == '__main__':
 
   print('Data Preprocessing (4 steps)')
 
-  dataClass = DataUtils(model_name)
+  dataClass = DataUtils()
   print('1. Read file, get df')
   df, toxic_df, nontox_df = dataClass.readToxFile(path=data_path)
   print('2. Get word to sentence dict')

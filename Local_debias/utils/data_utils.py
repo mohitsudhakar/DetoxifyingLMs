@@ -6,7 +6,7 @@ from functools import reduce
 
 class DataUtils:
 
-    def __init__(self, model):
+    def __init__(self):
         self.path = 'data/'
 
     def readToxFile(self, path=None):

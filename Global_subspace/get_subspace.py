@@ -35,9 +35,12 @@ if __name__ == '__main__':
     pc_filename = 'princComp_top_' + str(num_words) + '_comp_' + str(num_components) + '_batch_' + str(batch_size)
 
     data_path = args.data_path if args.data_path else '../data/'
-    with open(data_path+'toxic_sents.txt', 'r') as f:
+    t_path = data_path + 'toxic_sents_' + str(num_words) + '.txt'
+    nt_path = data_path + 'non_toxic_sents_' + str(num_words) + '.txt'
+
+    with open(t_path, 'r') as f:
       toxic_sents = f.readlines()
-    with open(data_path+'non_toxic_sents.txt', 'r') as f:
+    with open(nt_path, 'r') as f:
       non_toxic_sents = f.readlines()
 
     model_name = args.model_name if args.model_name else 'bert'
