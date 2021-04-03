@@ -32,8 +32,11 @@ if __name__ == '__main__':
         print("Subspace file required for running Debert!")
         exit(1)
 
+    pc_file = args.subspace_file
+    subpath = pc_file.split('.')[0]
+
     # default `log_dir` is "runs" - we'll be more specific here
-    writer = SummaryWriter('runs/debert_global_cls')
+    writer = SummaryWriter('runs/debert_global_cls_'+subpath)
 
     model_name = args.model_name if args.model_name else 'bert'
     tokenizer, base_model = model_utils.getPretrained(model_name)
@@ -46,7 +49,6 @@ if __name__ == '__main__':
     print('Device', device)
 
     data_path = args.data_path if args.data_path else '../data/'
-    pc_file = args.subspace_file
 
     loaded_list = np.loadtxt(pc_file, delimiter=" ")
     pcs = torch.FloatTensor(loaded_list)
@@ -57,7 +59,7 @@ if __name__ == '__main__':
     # cls_model = nn.DataParallel(cls_model)
     cls_model = cls_model.to(device)
 
-    model_save_name = args.model_save_name if args.model_save_name else 'debertG.pt'
+    model_save_name = args.model_save_name if args.model_save_name else 'debertG_' + subpath + '.pt'
     # path = F"{model_save_name}"
     # cls_model.load_state_dict(torch.load(path))
 

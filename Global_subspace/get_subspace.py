@@ -18,22 +18,21 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--num_components", help="Size of Subspace")
     parser.add_argument("-b", "--batch_size", help="Batch size")
     parser.add_argument("-p", "--data_path", help="Data path, data/")
+    parser.add_argument("-w", "--num_words", help="Number of words to be considered")
     args = parser.parse_args()
 
     seq_len = 128
     emb_dim = 768
     num_layers = 12
     batch_size = int(args.batch_size) if args.batch_size else 50
-    num_words = 100
-    num_sents = 300
+    num_words = int(args.num_words) if args.num_words else 100
     num_components = int(args.num_components) if args.num_components else 50
-    count = num_sents*num_words
 
     if num_components > batch_size:
         print('Num_components must be lower than batch_size')
         exit(1)
 
-    pc_filename = 'princComp_top' + str(num_words) + '_comp' + str(num_components)
+    pc_filename = 'princComp_top_' + str(num_words) + '_comp_' + str(num_components) + '_batch_' + str(batch_size)
 
     data_path = args.data_path if args.data_path else '../data/'
     with open(data_path+'toxic_sents.txt', 'r') as f:
