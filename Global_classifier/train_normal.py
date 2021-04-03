@@ -42,7 +42,7 @@ if __name__ == '__main__':
   data_path = args.data_path if args.data_path else '../data/'
 
   cls_model = BertGlobalClassifier()
-  cls_model = nn.DataParallel(cls_model)
+  # cls_model = nn.DataParallel(cls_model)
 
   """ model_save_name = 'model.pt' """
   model_save_name = args.model_save_name if args.model_save_name else 'bertG.pt'
