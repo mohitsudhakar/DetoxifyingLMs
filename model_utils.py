@@ -7,6 +7,20 @@ from Global_classifier.degpt_global import GPT2GlobalClassifier, GPT2GlobalClass
 from Local_classifier.models.bert import BertClassifier, DeBertClassifier
 
 
+def getPooledOutput(out, model, input_ids, tokenizer, batch_size):
+  pooled_out = None
+
+  if model == 'gpt':
+    out = out.last_hidden_state
+    sequence_lengths = torch.ne(input_ids, tokenizer.pad_token_id).sum(-1) - 1
+    pooled_out = out[range(batch_size), sequence_lengths]
+
+  elif model == 'bert':
+    pooled_out = out.pooler_output
+
+  return pooled_out
+
+
 def plotGraph(y, title=""):
   x = range(len(y))
   plt.plot(x, y)

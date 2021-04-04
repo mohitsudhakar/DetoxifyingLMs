@@ -6,7 +6,7 @@ import torch
 
 import model_utils
 from gpu_utils import getFreeGpu, getMemUtil
-from model_utils import initBert
+from model_utils import initBert, getPooledOutput
 
 # !wget http://cs.virginia.edu/~ms5sw/detox/toxic_sents.txt
 # !wget http://cs.virginia.edu/~ms5sw/detox/non_toxic_sents.txt
@@ -77,8 +77,8 @@ if __name__ == '__main__':
       t_out = model(**t_inputs)
       nt_out = model(**nt_inputs)
 
-      pool_tox = t_out.pooler_output
-      pool_ntox = nt_out.pooler_output
+      pool_tox = getPooledOutput(t_out, model, t_inputs['input_ids'], tokenizer, t_inputs.shape[0])
+      pool_ntox = getPooledOutput(nt_out, model, nt_inputs['input_ids'], tokenizer, nt_inputs.shape[0])
 
       D = pool_tox - pool_ntox
       diff_vector = D.cpu().detach().numpy()
