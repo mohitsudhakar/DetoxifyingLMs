@@ -7,3 +7,7 @@ def getFreeGpu():
     mem_util = [g[3] for g in gpulist]
     mem_util = [float(mem.split(':')[1].strip()[:-1]) for mem in mem_util]
     return np.argmin(mem_util)
+
+
+def getMemUtil(msg='', gpu=0):
+  print(msg, str(list(nvsmi.get_gpus())[gpu]).split(' | ')[3])

@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-# import nvsmi
 from Global_classifier.debert_global import BertGlobalClassifier, DeBertGlobalClassifier
 from Global_classifier.degpt_global import GPT2GlobalClassifier, GPT2GlobalClassifier2, DeGPT2GlobalClassifier
 from Local_classifier.models.bert import BertClassifier, DeBertClassifier
@@ -36,9 +35,6 @@ def getPrincipalComponents(D, num_comp=None):
   ev = pca.explained_variance_
   return torch.Tensor(np.array(pca.components_)), np.array(ev_percent), np.array(ev)
 
-
-# def getMemUtil(msg=''):
-#   print(msg, str(list(nvsmi.get_gpus())[0]).split(' | ')[3])
 
 def projection(a, b):
   inner = torch.mm(a, b.T)

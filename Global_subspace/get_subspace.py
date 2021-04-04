@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 import model_utils
-from gpu_utils import getFreeGpu
+from gpu_utils import getFreeGpu, getMemUtil
 from model_utils import initBert
 
 # !wget http://cs.virginia.edu/~ms5sw/detox/toxic_sents.txt
@@ -55,11 +55,16 @@ if __name__ == '__main__':
 
     # model = bert_model
 
-    device = torch.device('cpu')
+    deviceStr = 'cpu'
     if torch.cuda.is_available():
-        device = torch.device('cuda:' + str(getFreeGpu()))
+        deviceStr = 'cuda:' + str(getFreeGpu())
+    device = torch.device(deviceStr)
+    print('Device', device)
 
     model = model.to(device)
+    # if 'cuda' in deviceStr:
+    #     gpu = deviceStr.split(':')[1]
+    #     getMemUtil('after model', int(gpu))
 
     from sklearn.decomposition import IncrementalPCA
     incPca = IncrementalPCA(n_components=num_components)
