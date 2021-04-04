@@ -77,8 +77,9 @@ if __name__ == '__main__':
       t_out = model(**t_inputs)
       nt_out = model(**nt_inputs)
 
-      pool_tox = getPooledOutput(t_out, model, t_inputs['input_ids'], tokenizer, t_inputs.shape[0])
-      pool_ntox = getPooledOutput(nt_out, model, nt_inputs['input_ids'], tokenizer, nt_inputs.shape[0])
+      batch_size = t_inputs['input_ids'].shape[0]
+      pool_tox = getPooledOutput(t_out, model, t_inputs['input_ids'], tokenizer, batch_size)
+      pool_ntox = getPooledOutput(nt_out, model, nt_inputs['input_ids'], tokenizer, batch_size)
 
       D = pool_tox - pool_ntox
       diff_vector = D.cpu().detach().numpy()
