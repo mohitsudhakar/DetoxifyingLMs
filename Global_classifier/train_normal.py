@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
   def generate_batch(batch):
 
-    texts = [tokenizer.encode_plus(
+    texts = [tokenizer(
           entry[0], add_special_tokens=True, truncation=True,
           max_length=128, padding='max_length',
           return_attention_mask=True) for entry in batch] #return_tensors='pt'
