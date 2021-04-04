@@ -10,6 +10,7 @@ from torch.optim import SGD
 from torch.utils.data import DataLoader, random_split, SubsetRandomSampler
 from torch.utils.tensorboard import SummaryWriter
 from transformers import get_linear_schedule_with_warmup
+import numpy as np
 
 import model_utils
 from Global_classifier.debert_global import BertGlobalClassifier
@@ -31,7 +32,7 @@ if __name__ == '__main__':
 
   writer = SummaryWriter('runs/'+model_name+'_global_cls')
 
-  tokenizer, base_model = model_utils.getPretrained(model_name)
+  tokenizer, _ = model_utils.getPretrained(model_name)
 
   # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
   device = torch.device('cpu')
@@ -54,7 +55,7 @@ if __name__ == '__main__':
   cls_model = cls_model.to(device)
 
   batch_size = 32
-  num_workers = 2
+  num_workers = 4
   num_epochs = 10
   step_size = 100
 
@@ -77,7 +78,7 @@ if __name__ == '__main__':
   random_seed = 42
 
   # Init datasets
-  dataset = ToxicityDataset(toxic_df=toxic_df, nontox_df=nontox_df, tokenizer=tokenizer, batch_size=batch_size)
+  dataset = ToxicityDataset(toxic_df=toxic_df, nontox_df=nontox_df, batch_size=batch_size)
   dataset_size = len(dataset)
 
   #######
@@ -93,11 +94,13 @@ if __name__ == '__main__':
 
 
   def generate_batch(batch):
-
     texts = [tokenizer(
           entry[0], add_special_tokens=True, truncation=True,
           max_length=128, padding='max_length',
           return_attention_mask=True) for entry in batch] #return_tensors='pt'
+
+    # inp_ids = torch.cat([torch.unsqueeze(t['input_ids'], dim=0) for t in texts])
+    # attn_masks = torch.cat([torch.unsqueeze(t['attention_mask'], dim=0) for t in texts])
 
     inp_ids = [t['input_ids'] for t in texts]
     inp_ids = torch.LongTensor(inp_ids)
@@ -198,6 +201,7 @@ if __name__ == '__main__':
       num_samples += inp_ids.size(0)
 
       if (1 + batch_id) % step_size == 0:
+        print('val', epoch, batch_id, val_acc / num_samples)
         writer.add_scalar('validation loss',
                           val_loss / num_samples,
                           epoch * len(val_loader) + batch_id)

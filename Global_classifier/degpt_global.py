@@ -83,14 +83,15 @@ if __name__ == '__main__':
     loaded_list = np.loadtxt(pc_file, delimiter=" ")
     pcs = torch.FloatTensor(loaded_list)
 
-    sentence = ["What the fuck is wrong with you? Is that even possible you fuck!"]
-    inputs = tokenizer(sentence, return_tensors='pt')
-    # inputs = tokenizer(
-    #     sentence, add_special_tokens=True, truncation=True,
-    #     max_length=128, padding='max_length',
-    #     return_attention_mask=True,
-    #     return_tensors='pt')
-    print(inputs)
+    # sentence = ["What the fuck is wrong with you? Is that even possible you fuck!"]
+    sentence = ['Now, a new documentary by Danish broadcaster TV2 has reignited debate over whether the infamous mosque should be shut down.']
+    # inputs = tokenizer(sentence, return_tensors='pt')
+    inputs = tokenizer(
+        sentence, add_special_tokens=True, truncation=True,
+        max_length=128, padding='max_length',
+        return_attention_mask=True,
+        return_tensors='pt')
+    print('Inputs',inputs)
 
     cls1 = GPT2GlobalClassifier()
     cls1 = cls1.to(device)

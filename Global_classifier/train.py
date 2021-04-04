@@ -40,7 +40,7 @@ if __name__ == '__main__':
     # default `log_dir` is "runs" - we'll be more specific here
     writer = SummaryWriter('runs/de'+model_name+'_global_cls_'+subpath)
 
-    tokenizer, base_model = model_utils.getPretrained(model_name)
+    tokenizer, _ = model_utils.getPretrained(model_name)
 
     # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     device = torch.device('cpu')
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # cls_model.load_state_dict(torch.load(path))
 
     batch_size = 32
-    num_workers = 2
+    num_workers = 4
     num_epochs = 10
     step_size = 100
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     random_seed = 42
 
     # Init datasets
-    dataset = ToxicityDataset(toxic_df=toxic_df, nontox_df=nontox_df, tokenizer=tokenizer, batch_size=batch_size)
+    dataset = ToxicityDataset(toxic_df=toxic_df, nontox_df=nontox_df, batch_size=batch_size)
     dataset_size = len(dataset)
 
     #######
@@ -106,7 +106,6 @@ if __name__ == '__main__':
     # trainset, valset = random_split(dataset, [train_size, val_size])
 
     def generate_batch(batch):
-
         texts = [tokenizer(
             entry[0], add_special_tokens=True, truncation=True,
             max_length=128, padding='max_length',
@@ -216,6 +215,7 @@ if __name__ == '__main__':
         num_samples += inp_ids.size(0)
 
         if (1 + batch_id) % step_size == 0:
+            print('val', epoch, batch_id, val_acc / num_samples)
             writer.add_scalar('validation loss',
                               val_loss / num_samples,
                               epoch * len(val_loader) + batch_id)
