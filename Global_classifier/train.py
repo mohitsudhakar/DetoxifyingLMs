@@ -17,6 +17,7 @@ from Global_classifier.debert_global import DeBertGlobalClassifier
 from Local_debias.utils.data_utils import DataUtils
 from dataset import ToxicityDataset
 from gpu_utils import getFreeGpu
+from model_utils import getGlobalModelDebiased
 
 if __name__ == '__main__':
 
@@ -24,7 +25,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model_name", help="bert, roberta, gpt2, xlnet")
     parser.add_argument("-s", "--model_save_name")
-    parser.add_argument("-d", "--debias", dest="debias", help="Debias, bool", action="store_true")
     parser.add_argument("-p", "--data_path", help="Data path, data/")
     parser.add_argument("-f", "--subspace_file", help="Subspace matrix filename")
     args = parser.parse_args()
@@ -55,11 +55,12 @@ if __name__ == '__main__':
     pcs = pcs.to(device)
     print('pcs shape', pcs.shape)
 
-    cls_model = DeBertGlobalClassifier(bias_subspace=pcs)
+    # cls_model = DeBertGlobalClassifier(bias_subspace=pcs)
+    cls_model = getGlobalModelDebiased(model_name, pcs)
     # cls_model = nn.DataParallel(cls_model)
     cls_model = cls_model.to(device)
 
-    model_save_name = args.model_save_name if args.model_save_name else 'debertG_' + subpath + '.pt'
+    model_save_name = args.model_save_name if args.model_save_name else 'de'+model_name+'G_' + subpath + '.pt'
     # path = F"{model_save_name}"
     # cls_model.load_state_dict(torch.load(path))
 

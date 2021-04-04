@@ -3,7 +3,8 @@ import torch
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 # import nvsmi
-
+from Global_classifier.debert_global import BertGlobalClassifier, DeBertGlobalClassifier
+from Global_classifier.degpt_global import GPT2GlobalClassifier, GPT2GlobalClassifier2, DeGPT2GlobalClassifier
 from Local_classifier.models.bert import BertClassifier, DeBertClassifier
 
 
@@ -77,6 +78,40 @@ def initXlnet():
   return xlnet_tokenizer, xlnet_model
 
 
+def initGlobalBert():
+  model = BertGlobalClassifier()
+  return model
+
+def initGlobalGpt2():
+  model = GPT2GlobalClassifier()
+  return model
+
+
+def initGlobalRoberta():
+  return
+
+
+def initGlobalXlnet():
+  return
+
+
+def initGlobalBertDebiased(subspace):
+  model = DeBertGlobalClassifier(subspace)
+  return model
+
+def initGlobalGpt2Debiased(subspace):
+  model = DeGPT2GlobalClassifier(subspace)
+  return model
+
+
+def initGlobalRobertaDebiased():
+  return
+
+
+def initGlobalXlnetDebiased():
+  return
+
+
 def getPretrained(model):
   switcher = {
     'bert': initBert,
@@ -85,6 +120,26 @@ def getPretrained(model):
     'xlnet': initXlnet
   }
   return switcher.get(model, (None, None))()
+
+def getGlobalModel(model_name):
+  switcher = {
+    'bert': initGlobalBert,
+    'gpt2': initGlobalGpt2,
+    'roberta': initGlobalRoberta,
+    'xlnet': initGlobalXlnet
+  }
+  return switcher.get(model_name, (None, None))()
+
+
+
+def getGlobalModelDebiased(model_name, subspace):
+  switcher = {
+    'bert': initGlobalBertDebiased,
+    'gpt2': initGlobalGpt2Debiased,
+    'roberta': initGlobalRobertaDebiased,
+    'xlnet': initGlobalXlnetDebiased
+  }
+  return switcher.get(model_name, (None, None))(subspace)
 
 
 def getSwitcher(withDebias = True):

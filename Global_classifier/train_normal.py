@@ -16,6 +16,7 @@ from Global_classifier.debert_global import BertGlobalClassifier
 from Local_debias.utils.data_utils import DataUtils
 from dataset import ToxicityDataset
 from gpu_utils import getFreeGpu
+from model_utils import getGlobalModel
 
 if __name__ == '__main__':
 
@@ -40,11 +41,12 @@ if __name__ == '__main__':
 
   data_path = args.data_path if args.data_path else '../data/'
 
-  cls_model = BertGlobalClassifier()
+  # cls_model = BertGlobalClassifier()
+  cls_model = getGlobalModel(model_name)
   # cls_model = nn.DataParallel(cls_model)
 
   """ model_save_name = 'model.pt' """
-  model_save_name = args.model_save_name if args.model_save_name else 'bertG.pt'
+  model_save_name = args.model_save_name if args.model_save_name else model_name+'G' + '.pt'
   # path = F"{model_save_name}"
   # cls_model.load_state_dict(torch.load(path))
 
