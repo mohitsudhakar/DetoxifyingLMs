@@ -27,7 +27,7 @@ if __name__ == '__main__':
   parser.add_argument("-p", "--data_path", help="Data path, data/")
   args = parser.parse_args()
 
-  writer = SummaryWriter('runs/bert_global_cls')
+  writer = SummaryWriter('runs/'+model_name+'_global_cls')
 
   model_name = args.model_name if args.model_name else 'bert'
   tokenizer, base_model = model_utils.getPretrained(model_name)
@@ -64,8 +64,8 @@ if __name__ == '__main__':
   df, toxic_df, nontox_df = dataClass.readToxFile(path=data_path)
   print('2. Get word to sentence dict')
   wsentAll, wsentTox, wsentNT = dataClass.readWordToSentFiles(path=data_path)
-  print('3. Get word scores dict')
-  sAll, sTox, sNT = dataClass.readWordScores(path=data_path)
+  # print('3. Get word scores dict')
+  # sAll, sTox, sNT = dataClass.readWordScores(path=data_path)
   # print('4. Process to get final dataframe')
   # ht = dataClass.process(sAll, sTox, sNT)
 

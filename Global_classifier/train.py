@@ -35,10 +35,11 @@ if __name__ == '__main__':
     pc_file = args.subspace_file
     subpath = pc_file.split('.')[0]
 
-    # default `log_dir` is "runs" - we'll be more specific here
-    writer = SummaryWriter('runs/debert_global_cls_'+subpath)
-
     model_name = args.model_name if args.model_name else 'bert'
+
+    # default `log_dir` is "runs" - we'll be more specific here
+    writer = SummaryWriter('runs/de'+model_name+'_global_cls_'+subpath)
+
     tokenizer, base_model = model_utils.getPretrained(model_name)
 
     # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
