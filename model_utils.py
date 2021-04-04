@@ -86,6 +86,10 @@ def initGlobalGpt2():
   model = GPT2GlobalClassifier()
   return model
 
+def initGlobalGpt2_2():
+  model = GPT2GlobalClassifier2()
+  return model
+
 
 def initGlobalRoberta():
   return
@@ -116,6 +120,7 @@ def getPretrained(model):
   switcher = {
     'bert': initBert,
     'gpt2': initGpt2,
+    'gpt2_2': initGpt2,
     'roberta': initRoberta,
     'xlnet': initXlnet
   }
@@ -125,6 +130,7 @@ def getGlobalModel(model_name):
   switcher = {
     'bert': initGlobalBert,
     'gpt2': initGlobalGpt2,
+    'gpt2_2': initGlobalGpt2_2,
     'roberta': initGlobalRoberta,
     'xlnet': initGlobalXlnet
   }
