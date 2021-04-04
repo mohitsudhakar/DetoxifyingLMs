@@ -27,9 +27,10 @@ if __name__ == '__main__':
   parser.add_argument("-p", "--data_path", help="Data path, data/")
   args = parser.parse_args()
 
+  model_name = args.model_name if args.model_name else 'bert'
+
   writer = SummaryWriter('runs/'+model_name+'_global_cls')
 
-  model_name = args.model_name if args.model_name else 'bert'
   tokenizer, base_model = model_utils.getPretrained(model_name)
 
   # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
