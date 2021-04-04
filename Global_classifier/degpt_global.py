@@ -61,7 +61,11 @@ class DeGPT2GlobalClassifier(nn.Module):
         out = self.gpt2(input_ids=input_ids, attention_mask=attn_mask)
         out = out.last_hidden_state
 
-        out = model_utils.projection(out, self.subspace)
+        batch_size = input_ids.shape[0]
+        sequence_lengths = torch.ne(input_ids, self.tokenizer.pad_token_id).sum(-1) - 1
+        pooled_out = out[range(batch_size), sequence_lengths]
+
+        out = model_utils.projection(pooled_out, self.subspace)
         out = self.fc(out)
         return out
 
@@ -93,10 +97,10 @@ if __name__ == '__main__':
         return_tensors='pt')
     print('Inputs',inputs)
 
-    cls1 = GPT2GlobalClassifier()
+    cls1 = GPT2GlobalClassifier2()
     cls1 = cls1.to(device)
 
-    cls2 = GPT2GlobalClassifier2()
+    cls2 = DeGPT2GlobalClassifier(pcs)
     cls2 = cls2.to(device)
 
     out1 = cls1(inputs['input_ids'], inputs['attention_mask'])

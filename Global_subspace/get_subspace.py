@@ -59,12 +59,13 @@ if __name__ == '__main__':
     if torch.cuda.is_available():
         device = torch.device('cuda:' + str(getFreeGpu()))
 
+    model = model.to(device)
+
     from sklearn.decomposition import IncrementalPCA
     incPca = IncrementalPCA(n_components=num_components)
 
     def run_bert_algorithm_with_inc_pca(t_inputs, nt_inputs, model, device):
       # inputs are encoded sentences
-      model = model.to(device)
       t_inputs = t_inputs.to(device)
       nt_inputs = nt_inputs.to(device)
 
