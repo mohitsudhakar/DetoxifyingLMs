@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import numpy as np
 
 import model_utils
-from model_utils import initBert
 
 
 class BertGlobalClassifier(nn.Module):
@@ -47,7 +46,7 @@ if __name__ == '__main__':
     2. Call projection() on model output (a) and pc_tensor (b)
     3. Output is debiased rep, can be passed downstream
     """
-    tokenizer, model = initBert()
+    tokenizer, model = model_utils.initBert()
     device = 'cpu'
     data_path = '../data/'
     pc_file = data_path + 'princComp.txt'
