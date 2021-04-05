@@ -43,7 +43,7 @@ if __name__ == '__main__':
     with open(nt_path, 'r') as f:
       non_toxic_sents = f.readlines()
 
-    model_name = args.model_name if args.model_name else 'bert'
+    model_name = args.model_name if args.model_name else 'gpt2'
     tokenizer, model = model_utils.getPretrained(model_name)
 
     # todo: Compute PMI
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     from sklearn.decomposition import IncrementalPCA
     incPca = IncrementalPCA(n_components=num_components)
 
-    def run_bert_algorithm_with_inc_pca(t_inputs, nt_inputs, model, device):
+    def run_subspace_algorithm_with_inc_pca(t_inputs, nt_inputs, model, device):
       # inputs are encoded sentences
       t_inputs = t_inputs.to(device)
       nt_inputs = nt_inputs.to(device)
@@ -78,8 +78,8 @@ if __name__ == '__main__':
       nt_out = model(**nt_inputs)
 
       batch_size = t_inputs['input_ids'].shape[0]
-      pool_tox = getPooledOutput(t_out, model, t_inputs['input_ids'], tokenizer, batch_size)
-      pool_ntox = getPooledOutput(nt_out, model, nt_inputs['input_ids'], tokenizer, batch_size)
+      pool_tox = getPooledOutput(t_out, model_name, t_inputs['input_ids'], tokenizer, batch_size)
+      pool_ntox = getPooledOutput(nt_out, model_name, nt_inputs['input_ids'], tokenizer, batch_size)
 
       D = pool_tox - pool_ntox
       diff_vector = D.cpu().detach().numpy()
@@ -111,7 +111,7 @@ if __name__ == '__main__':
               return_attention_mask=True,
               return_tensors='pt')
       torch.cuda.empty_cache()
-      run_bert_algorithm_with_inc_pca(inputs, nt_inputs, model, device)
+      run_subspace_algorithm_with_inc_pca(inputs, nt_inputs, model, device)
       batch_no += 1
       torch.cuda.empty_cache()
 

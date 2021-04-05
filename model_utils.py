@@ -10,7 +10,7 @@ from Local_classifier.models.bert import BertClassifier, DeBertClassifier
 def getPooledOutput(out, model, input_ids, tokenizer, batch_size):
   pooled_out = None
 
-  if model == 'gpt':
+  if model == 'gpt2':
     out = out.last_hidden_state
     sequence_lengths = torch.ne(input_ids, tokenizer.pad_token_id).sum(-1) - 1
     pooled_out = out[range(batch_size), sequence_lengths]
