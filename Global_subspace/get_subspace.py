@@ -58,13 +58,11 @@ if __name__ == '__main__':
     deviceStr = 'cpu'
     if torch.cuda.is_available():
         deviceStr = 'cuda:' + str(getFreeGpu())
+        gpu = int(deviceStr.split(':')[1])
     device = torch.device(deviceStr)
     print('Device', device)
 
     model = model.to(device)
-    # if 'cuda' in deviceStr:
-    #     gpu = deviceStr.split(':')[1]
-    #     getMemUtil('after model', int(gpu))
 
     from sklearn.decomposition import IncrementalPCA
     incPca = IncrementalPCA(n_components=num_components)

@@ -16,7 +16,7 @@ import model_utils
 from Global_classifier.debert_global import DeBertGlobalClassifier
 from Local_debias.utils.data_utils import DataUtils
 from dataset import ToxicityDataset
-from gpu_utils import getFreeGpu
+from gpu_utils import getFreeGpu, getMemUtil
 from model_utils import getGlobalModelDebiased
 
 if __name__ == '__main__':
@@ -42,12 +42,14 @@ if __name__ == '__main__':
 
     tokenizer, _ = model_utils.getPretrained(model_name)
 
-    # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    device = torch.device('cpu')
+    deviceStr = 'cpu'
     if torch.cuda.is_available():
-      device = torch.device('cuda:' + str(getFreeGpu()))
+        deviceStr = 'cuda:' + str(getFreeGpu())
+        gpu = int(deviceStr.split(':')[1])
+    device = torch.device(deviceStr)
 
     print('Device', device)
+    getMemUtil('after model', gpu)
 
     data_path = args.data_path if args.data_path else '../data/'
 
@@ -60,6 +62,8 @@ if __name__ == '__main__':
     cls_model = getGlobalModelDebiased(model_name, pcs)
     # cls_model = nn.DataParallel(cls_model)
     cls_model = cls_model.to(device)
+
+    getMemUtil('added model', )
 
     model_save_name = args.model_save_name if args.model_save_name else 'de'+model_name+'G_' + subpath + '.pt'
     # path = F"{model_save_name}"
@@ -169,11 +173,12 @@ if __name__ == '__main__':
         inp_ids = inp_ids.to(device)
         attn_masks = attn_masks.to(device)
         labels = labels.to(device)
-
+        getMemUtil('after inputs', gpu)
         # print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
         optimizer.zero_grad()
 
         predicted = cls_model(inp_ids, attn_masks)
+        getMemUtil('after output', gpu)
         loss = criterion(predicted, labels)
         # print('pred', predicted.shape, predicted[0]) # batch_size x 2
         train_loss += loss.item()
