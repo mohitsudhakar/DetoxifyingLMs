@@ -27,6 +27,8 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--model_save_name")
     parser.add_argument("-p", "--data_path", help="Data path, data/")
     parser.add_argument("-f", "--subspace_file", help="Subspace matrix filename")
+    parser.add_argument("-fw", "--freeze_weights", help="Freeze weights of pretrained model", action='store_true')
+
     args = parser.parse_args()
     if not args.subspace_file:
         print("Subspace file required for running Debert!")
@@ -36,6 +38,7 @@ if __name__ == '__main__':
     subpath = pc_file.split('.')[0]
 
     model_name = args.model_name if args.model_name else 'bert'
+    freeze_weights = args.freeze_weights if args.freeze_weights else False
 
     # default `log_dir` is "runs" - we'll be more specific here
     writer = SummaryWriter('runs/de'+model_name+'_global_cls_'+subpath)
@@ -59,7 +62,7 @@ if __name__ == '__main__':
     print('pcs shape', pcs.shape)
 
     # cls_model = DeBertGlobalClassifier(bias_subspace=pcs)
-    cls_model = getGlobalModelDebiased(model_name, pcs)
+    cls_model = getGlobalModelDebiased(model_name, pcs, freeze_weights)
     # cls_model = nn.DataParallel(cls_model)
     cls_model = cls_model.to(device)
 
@@ -162,6 +165,7 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
 
       print('Epoch', epoch)
+      getMemUtil('Mem train epoch', gpu)
       cls_model.train()
       train_loss = 0
       train_acc = 0
@@ -173,7 +177,7 @@ if __name__ == '__main__':
         inp_ids = inp_ids.to(device)
         attn_masks = attn_masks.to(device)
         labels = labels.to(device)
-        getMemUtil('after inputs', gpu)
+        # getMemUtil('after inputs', gpu)
         # print('inp_ids', inp_ids.shape, 'attn_masks', attn_masks.shape, 'labels', labels.shape)
         optimizer.zero_grad()
 
@@ -201,17 +205,20 @@ if __name__ == '__main__':
 
       scheduler.step()
 
+      torch.cuda.empty_cache()
       cls_model.eval()
       val_loss = 0
       val_acc = 0
       num_samples = 0
+      getMemUtil('Mem val epoch', gpu)
       for (batch_id, (inp_ids, attn_masks, labels)) in enumerate(val_loader):
 
         inp_ids = inp_ids.to(device)
         attn_masks = attn_masks.to(device)
         labels = labels.to(device)
-
+        getMemUtil('after inputs', gpu)
         predicted = cls_model(inp_ids, attn_masks)
+        getMemUtil('after output', gpu)
         loss = criterion(predicted, labels)
         # print('val loss', loss)
         val_loss += loss.item()

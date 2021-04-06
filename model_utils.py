@@ -3,7 +3,7 @@ import torch
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from Global_classifier.debert_global import BertGlobalClassifier, DeBertGlobalClassifier
-from Global_classifier.degpt_global import GPT2GlobalClassifier, GPT2GlobalClassifier2, DeGPT2GlobalClassifier
+from Global_classifier.degpt_global import GPT2GlobalClassifier, DeGPT2GlobalClassifier
 from Local_classifier.models.bert import BertClassifier, DeBertClassifier
 
 
@@ -56,20 +56,30 @@ def projection(a, b):
   return res
 
 
-def initBert():
+def initBert(freeze_weights=False):
   from transformers import BertTokenizer, BertModel
   tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
   model = BertModel.from_pretrained('bert-base-uncased')
+
+  if freeze_weights:
+    for param in model.parameters():
+      param.requires_grad = False
+
   return tokenizer, model
 
 
-def initGpt2():
+def initGpt2(freeze_weights=False):
   from transformers import GPT2Tokenizer, GPT2Model, GPT2Config
   gpt2_tokenizer = GPT2Tokenizer.from_pretrained('gpt2', add_prefix_space=True)
   gpt2_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
   gpt2_config = GPT2Config(vocab_size=gpt2_tokenizer.vocab_size)
   gpt2_model = GPT2Model.from_pretrained('gpt2', config=gpt2_config)
   gpt2_model.resize_token_embeddings(len(gpt2_tokenizer))
+
+  if freeze_weights:
+    for param in gpt2_model.parameters():
+      param.requires_grad = False
+
   return gpt2_tokenizer, gpt2_model
 
 
@@ -88,16 +98,12 @@ def initXlnet():
   return xlnet_tokenizer, xlnet_model
 
 
-def initGlobalBert():
-  model = BertGlobalClassifier()
+def initGlobalBert(freeze_weights=False):
+  model = BertGlobalClassifier(freeze_weights)
   return model
 
-def initGlobalGpt2():
-  model = GPT2GlobalClassifier()
-  return model
-
-def initGlobalGpt2_2():
-  model = GPT2GlobalClassifier2()
+def initGlobalGpt2(freeze_weights=False):
+  model = GPT2GlobalClassifier(freeze_weights)
   return model
 
 
@@ -109,12 +115,12 @@ def initGlobalXlnet():
   return
 
 
-def initGlobalBertDebiased(subspace):
-  model = DeBertGlobalClassifier(subspace)
+def initGlobalBertDebiased(subspace, freeze_weights=False):
+  model = DeBertGlobalClassifier(subspace, freeze_weights)
   return model
 
-def initGlobalGpt2Debiased(subspace):
-  model = DeGPT2GlobalClassifier(subspace)
+def initGlobalGpt2Debiased(subspace, freeze_weights=False):
+  model = DeGPT2GlobalClassifier(subspace, freeze_weights)
   return model
 
 
@@ -136,26 +142,25 @@ def getPretrained(model):
   }
   return switcher.get(model, (None, None))()
 
-def getGlobalModel(model_name):
+def getGlobalModel(model_name, freeze_weights=False):
   switcher = {
     'bert': initGlobalBert,
     'gpt2': initGlobalGpt2,
-    'gpt2_2': initGlobalGpt2_2,
     'roberta': initGlobalRoberta,
     'xlnet': initGlobalXlnet
   }
-  return switcher.get(model_name, (None, None))()
+  return switcher.get(model_name, (None, None))(freeze_weights)
 
 
 
-def getGlobalModelDebiased(model_name, subspace):
+def getGlobalModelDebiased(model_name, subspace, freeze_weights=False):
   switcher = {
     'bert': initGlobalBertDebiased,
     'gpt2': initGlobalGpt2Debiased,
     'roberta': initGlobalRobertaDebiased,
     'xlnet': initGlobalXlnetDebiased
   }
-  return switcher.get(model_name, (None, None))(subspace)
+  return switcher.get(model_name, (None, None))(subspace, freeze_weights)
 
 
 def getSwitcher(withDebias = True):

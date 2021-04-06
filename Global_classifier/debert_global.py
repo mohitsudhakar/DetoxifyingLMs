@@ -7,9 +7,9 @@ import model_utils
 
 
 class BertGlobalClassifier(nn.Module):
-    def __init__(self):
+    def __init__(self, freeze_weights=False):
         super(BertGlobalClassifier, self).__init__()
-        _, self.bert = model_utils.initBert()
+        _, self.bert = model_utils.initBert(freeze_weights)
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
@@ -22,9 +22,9 @@ class BertGlobalClassifier(nn.Module):
 
 class DeBertGlobalClassifier(nn.Module):
 
-    def __init__(self, bias_subspace):
+    def __init__(self, bias_subspace, freeze_weights=False):
         super(DeBertGlobalClassifier, self).__init__()
-        _, self.bert = model_utils.initBert()
+        _, self.bert = model_utils.initBert(freeze_weights)
         self.subspace = bias_subspace
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)

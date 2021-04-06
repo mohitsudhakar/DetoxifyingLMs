@@ -26,9 +26,11 @@ if __name__ == '__main__':
   parser.add_argument("-m", "--model_name", help="bert, roberta, gpt2, xlnet")
   parser.add_argument("-s", "--model_save_name")
   parser.add_argument("-p", "--data_path", help="Data path, data/")
+  parser.add_argument("-fw", "--freeze_weights", help="Freeze weights of pretrained model", action='store_true')
   args = parser.parse_args()
 
   model_name = args.model_name if args.model_name else 'bert'
+  freeze_weights = args.freeze_weights if args.freeze_weights else False
 
   writer = SummaryWriter('runs/'+model_name+'_global_cls')
 
@@ -44,7 +46,7 @@ if __name__ == '__main__':
   data_path = args.data_path if args.data_path else '../data/'
 
   # cls_model = BertGlobalClassifier()
-  cls_model = getGlobalModel(model_name)
+  cls_model = getGlobalModel(model_name, freeze_weights)
   # cls_model = nn.DataParallel(cls_model)
 
   """ model_save_name = 'model.pt' """
