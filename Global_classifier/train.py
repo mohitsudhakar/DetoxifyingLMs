@@ -42,7 +42,7 @@ if __name__ == '__main__':
     fw = '_fw' if freeze_weights else ''
 
     # default `log_dir` is "runs" - we'll be more specific here
-    writer = SummaryWriter('runs/de'+model_name+ fw +'_global_cls_'+subpath+)
+    writer = SummaryWriter('runs/de'+model_name+ fw +'_global_cls_'+subpath)
 
     tokenizer, _ = model_utils.getPretrained(model_name)
 
