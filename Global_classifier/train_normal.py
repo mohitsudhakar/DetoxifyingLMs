@@ -31,8 +31,9 @@ if __name__ == '__main__':
 
   model_name = args.model_name if args.model_name else 'bert'
   freeze_weights = args.freeze_weights if args.freeze_weights else False
+  fw = '_fw' if freeze_weights else ''
 
-  writer = SummaryWriter('runs/'+model_name+'_global_cls')
+  writer = SummaryWriter('runs/'+model_name+'_global_cls'+fw)
 
   tokenizer, _ = model_utils.getPretrained(model_name)
 
@@ -50,7 +51,7 @@ if __name__ == '__main__':
   # cls_model = nn.DataParallel(cls_model)
 
   """ model_save_name = 'model.pt' """
-  model_save_name = args.model_save_name if args.model_save_name else model_name+'G' + '.pt'
+  model_save_name = args.model_save_name if args.model_save_name else model_name+'G' + fw + '.pt'
   # path = F"{model_save_name}"
   # cls_model.load_state_dict(torch.load(path))
 

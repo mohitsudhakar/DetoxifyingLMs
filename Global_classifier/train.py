@@ -35,13 +35,14 @@ if __name__ == '__main__':
         exit(1)
 
     pc_file = args.subspace_file
-    subpath = pc_file.split('.')[0]
+    subpath = pc_file.split('/')[-1].split('.')[0]
 
     model_name = args.model_name if args.model_name else 'bert'
     freeze_weights = args.freeze_weights if args.freeze_weights else False
+    fw = '_fw' if freeze_weights else ''
 
     # default `log_dir` is "runs" - we'll be more specific here
-    writer = SummaryWriter('runs/de'+model_name+'_global_cls_'+subpath)
+    writer = SummaryWriter('runs/de'+model_name+ fw +'_global_cls_'+subpath+)
 
     tokenizer, _ = model_utils.getPretrained(model_name)
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
 
     getMemUtil('added model', )
 
-    model_save_name = args.model_save_name if args.model_save_name else 'de'+model_name+'G_' + subpath + '.pt'
+    model_save_name = args.model_save_name if args.model_save_name else 'de'+model_name+'G' + fw + '_' + subpath + '.pt'
     # path = F"{model_save_name}"
     # cls_model.load_state_dict(torch.load(path))
 
@@ -216,9 +217,9 @@ if __name__ == '__main__':
         inp_ids = inp_ids.to(device)
         attn_masks = attn_masks.to(device)
         labels = labels.to(device)
-        getMemUtil('after inputs', gpu)
+        # getMemUtil('after inputs', gpu)
         predicted = cls_model(inp_ids, attn_masks)
-        getMemUtil('after output', gpu)
+        # getMemUtil('after output', gpu)
         loss = criterion(predicted, labels)
         # print('val loss', loss)
         val_loss += loss.item()
