@@ -183,7 +183,7 @@ if __name__ == '__main__':
         optimizer.zero_grad()
 
         predicted = cls_model(inp_ids, attn_masks)
-        getMemUtil('after output', gpu)
+        # getMemUtil('after output', gpu)
         loss = criterion(predicted, labels)
         # print('pred', predicted.shape, predicted[0]) # batch_size x 2
         train_loss += loss.item()
