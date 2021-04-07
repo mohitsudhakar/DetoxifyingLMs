@@ -33,7 +33,7 @@ if __name__ == '__main__':
   freeze_weights = args.freeze_weights if args.freeze_weights else False
   fw = '_fw' if freeze_weights else ''
 
-  writer = SummaryWriter('runs/'+model_name+'_global_cls'+fw)
+  writer = SummaryWriter(log_dir='runs/'+model_name+'_global_cls'+fw, max_queue=2, flush_secs=30)
 
   tokenizer, _ = model_utils.getPretrained(model_name)
 
