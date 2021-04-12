@@ -5,27 +5,6 @@ import numpy as np
 
 import model_utils
 
-# class GPT2GlobalClassifier(nn.Module):
-#     def __init__(self):
-#         super(GPT2GlobalClassifier, self).__init__()
-#         self.tokenizer, self.gpt2 = model_utils.initGpt2()
-#         self.fc = nn.Linear(768, 2)
-#         self.dropout = nn.Dropout(0.1)
-#
-#     def forward(self, input_ids, attn_mask):
-#         out = self.gpt2(input_ids=input_ids, attention_mask=attn_mask)
-#         out = out.last_hidden_state
-#         # print(out.shape)
-#         out = self.fc(out)
-#         # print(out.shape)
-#         batch_size = input_ids.shape[0]
-#         sequence_lengths = torch.ne(input_ids, self.tokenizer.pad_token_id).sum(-1) - 1
-#         # print('seq lens', sequence_lengths)
-#         pooled_out = out[range(batch_size), sequence_lengths]
-#         # print(pooled_out.shape)
-#         return pooled_out
-
-
 class GPT2GlobalClassifier(nn.Module):
     def __init__(self, freeze_weights=False):
         super(GPT2GlobalClassifier, self).__init__()
@@ -37,15 +16,36 @@ class GPT2GlobalClassifier(nn.Module):
         out = self.gpt2(input_ids=input_ids, attention_mask=attn_mask)
         out = out.last_hidden_state
         # print(out.shape)
+        out = self.fc(out)
+        # print(out.shape)
         batch_size = input_ids.shape[0]
         sequence_lengths = torch.ne(input_ids, self.tokenizer.pad_token_id).sum(-1) - 1
         # print('seq lens', sequence_lengths)
         pooled_out = out[range(batch_size), sequence_lengths]
         # print(pooled_out.shape)
-        out = self.fc(pooled_out)
-        # print(out.shape)
+        return pooled_out
 
-        return out
+#
+# class GPT2GlobalClassifier(nn.Module):
+#     def __init__(self, freeze_weights=False):
+#         super(GPT2GlobalClassifier, self).__init__()
+#         self.tokenizer, self.gpt2 = model_utils.initGpt2(freeze_weights)
+#         self.fc = nn.Linear(768, 2)
+#         self.dropout = nn.Dropout(0.1)
+#
+#     def forward(self, input_ids, attn_mask):
+#         out = self.gpt2(input_ids=input_ids, attention_mask=attn_mask)
+#         out = out.last_hidden_state
+#         # print(out.shape)
+#         batch_size = input_ids.shape[0]
+#         sequence_lengths = torch.ne(input_ids, self.tokenizer.pad_token_id).sum(-1) - 1
+#         # print('seq lens', sequence_lengths)
+#         pooled_out = out[range(batch_size), sequence_lengths]
+#         # print(pooled_out.shape)
+#         out = self.fc(pooled_out)
+#         # print(out.shape)
+#
+#         return out
 
 
 class DeGPT2GlobalClassifier(nn.Module):
@@ -97,7 +97,7 @@ if __name__ == '__main__':
         return_tensors='pt')
     print('Inputs',inputs)
 
-    cls1 = GPT2GlobalClassifier()
+    cls1 = GPT2GlobalClassifier(True)
     cls1 = cls1.to(device)
 
     cls2 = DeGPT2GlobalClassifier(pcs)
