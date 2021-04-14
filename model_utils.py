@@ -4,6 +4,7 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from Global_classifier.debert_global import BertGlobalClassifier, DeBertGlobalClassifier
 from Global_classifier.degpt_global import GPT2GlobalClassifier, DeGPT2GlobalClassifier
+from Global_classifier.deroberta_global import RobertaGlobalClassifier, DeRobertaGlobalClassifier
 from Local_classifier.models.bert import BertClassifier, DeBertClassifier
 
 
@@ -83,11 +84,15 @@ def initGpt2(freeze_weights=False):
   return gpt2_tokenizer, gpt2_model
 
 
-def initRoberta():
+def initRoberta(freeze_weights=False):
   from transformers import RobertaTokenizer, RobertaModel, BertModel
   roberta_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
   roberta_model = RobertaModel.from_pretrained('roberta-base')
   bert_model = BertModel.from_pretrained('bert-base-uncased')
+  if freeze_weights:
+    for param in roberta_model.parameters():
+      param.requires_grad = False
+
   return roberta_tokenizer, roberta_model, bert_model
 
 
@@ -107,8 +112,8 @@ def initGlobalGpt2(freeze_weights=False):
   return model
 
 
-def initGlobalRoberta():
-  return
+def initGlobalRoberta(freeze_weights=False):
+  return RobertaGlobalClassifier(freeze_weights)
 
 
 def initGlobalXlnet():
@@ -124,8 +129,8 @@ def initGlobalGpt2Debiased(subspace, freeze_weights=False):
   return model
 
 
-def initGlobalRobertaDebiased():
-  return
+def initGlobalRobertaDebiased(subspace, freeze_weights=False):
+  return DeRobertaGlobalClassifier(subspace, freeze_weights)
 
 
 def initGlobalXlnetDebiased():

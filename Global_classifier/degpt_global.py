@@ -23,6 +23,7 @@ class GPT2GlobalClassifier(nn.Module):
         # print('seq lens', sequence_lengths)
         pooled_out = out[range(batch_size), sequence_lengths]
         # print(pooled_out.shape)
+
         return pooled_out
 
 #
