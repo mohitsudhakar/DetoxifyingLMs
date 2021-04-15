@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # default `log_dir` is "runs" - we'll be more specific here
     writer = SummaryWriter(log_dir='runs/de'+model_name+ fw +'_global_cls_'+subpath, max_queue=2, flush_secs=30)
 
-    tokenizer, _ = model_utils.getPretrained(model_name)
+    tokenizer = model_utils.getPretrained(model_name)[0]
 
     deviceStr = 'cpu'
     if torch.cuda.is_available():

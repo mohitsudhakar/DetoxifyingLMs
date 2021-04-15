@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
   writer = SummaryWriter(log_dir='runs/'+model_name+'_global_cls'+fw, max_queue=2, flush_secs=30)
 
-  tokenizer, _ = model_utils.getPretrained(model_name)
+  tokenizer = model_utils.getPretrained(model_name)[0]
 
   # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
   device = torch.device('cpu')
