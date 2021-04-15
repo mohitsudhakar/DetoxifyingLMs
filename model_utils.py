@@ -178,8 +178,8 @@ def initGlobalAlbertDebiased(subspace, freeze_weights=False):
   model = DeAlbertGlobalClassifier(subspace, freeze_weights)
   return model
 
-def initGlobalDistilBertDebiased(freeze_weights=False):
-  model = DeDistilBertGlobalClassifier(freeze_weights)
+def initGlobalDistilBertDebiased(subspace, freeze_weights=False):
+  model = DeDistilBertGlobalClassifier(subspace, freeze_weights)
   return model
 
 
