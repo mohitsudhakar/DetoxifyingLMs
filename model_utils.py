@@ -194,6 +194,7 @@ def getPretrained(model):
     'gpt2_2': initGpt2,
     'roberta': initRoberta,
     'albert': initAlbert,
+    'distilbert': initDistilBert,
     'xlnet': initXlnet
   }
   return switcher.get(model, (None, None))()
@@ -204,6 +205,7 @@ def getGlobalModel(model_name, freeze_weights=False):
     'gpt2': initGlobalGpt2,
     'roberta': initGlobalRoberta,
     'albert': initGlobalAlbert,
+    'distilbert': initGlobalDistilBert,
     'xlnet': initGlobalXlnet
   }
   return switcher.get(model_name, (None, None))(freeze_weights)
@@ -216,6 +218,7 @@ def getGlobalModelDebiased(model_name, subspace, freeze_weights=False):
     'gpt2': initGlobalGpt2Debiased,
     'roberta': initGlobalRobertaDebiased,
     'albert': initGlobalAlbertDebiased,
+    'distilbert': initGlobalDistilBertDebiased,
     'xlnet': initGlobalXlnetDebiased
   }
   return switcher.get(model_name, (None, None))(subspace, freeze_weights)
