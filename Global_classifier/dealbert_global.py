@@ -6,10 +6,10 @@ import numpy as np
 import model_utils
 
 
-class RobertaGlobalClassifier(nn.Module):
+class AlbertGlobalClassifier(nn.Module):
     def __init__(self, freeze_weights=False):
-        super(RobertaGlobalClassifier, self).__init__()
-        _, self.model, _ = model_utils.initRoberta(freeze_weights)
+        super(AlbertGlobalClassifier, self).__init__()
+        _, self.model = model_utils.initAlbert(freeze_weights)
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
@@ -20,11 +20,11 @@ class RobertaGlobalClassifier(nn.Module):
         return out
 
 
-class DeRobertaGlobalClassifier(nn.Module):
+class DeAlbertGlobalClassifier(nn.Module):
 
     def __init__(self, bias_subspace, freeze_weights=False):
-        super(DeRobertaGlobalClassifier, self).__init__()
-        _, self.model, _ = model_utils.initRoberta(freeze_weights)
+        super(DeAlbertGlobalClassifier, self).__init__()
+        _, self.model = model_utils.initAlbert(freeze_weights)
         self.subspace = bias_subspace
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     2. Call projection() on model output (a) and pc_tensor (b)
     3. Output is debiased rep, can be passed downstream
     """
-    tokenizer, _, _ = model_utils.initRoberta()
+    tokenizer, model = model_utils.initAlbert()
     device = 'cpu'
     data_path = '../data/'
     pc_file = data_path + 'princComp.txt'
@@ -61,10 +61,10 @@ if __name__ == '__main__':
         return_attention_mask=True,
         return_tensors='pt')
 
-    cls1 = RobertaGlobalClassifier()
+    cls1 = AlbertGlobalClassifier()
     cls1 = cls1.to(device)
 
-    cls2 = DeRobertaGlobalClassifier(pcs)
+    cls2 = DeAlbertGlobalClassifier(pcs)
     cls2 = cls2.to(device)
 
     out1 = cls1(inputs['input_ids'], inputs['attention_mask'])

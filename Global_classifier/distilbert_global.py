@@ -6,35 +6,52 @@ import numpy as np
 import model_utils
 
 
-class RobertaGlobalClassifier(nn.Module):
+class DistilBertGlobalClassifier(nn.Module):
     def __init__(self, freeze_weights=False):
-        super(RobertaGlobalClassifier, self).__init__()
-        _, self.model, _ = model_utils.initRoberta(freeze_weights)
+        super(DistilBertGlobalClassifier, self).__init__()
+        _, self.model = model_utils.initDistilBert(freeze_weights)
+        self.pre_classifier = nn.Linear(768, 768)
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, input_ids, attn_mask):
         out = self.model(input_ids, attn_mask)
-        out = out.pooler_output
-        out = self.fc(out)
-        return out
+
+        hidden_state = out.last_hidden_state  # (bs, seq_len, dim)
+        pooled_output = hidden_state[:, 0]  # (bs, dim)
+        pooled_output = self.pre_classifier(pooled_output)  # (bs, dim)
+        pooled_output = nn.ReLU()(pooled_output)  # (bs, dim)
+        pooled_output = self.dropout(pooled_output)  # (bs, dim)
+        logits = self.fc(pooled_output)  # (bs, num_labels)
+
+        return logits
 
 
-class DeRobertaGlobalClassifier(nn.Module):
+class DeDistilBertGlobalClassifier(nn.Module):
 
     def __init__(self, bias_subspace, freeze_weights=False):
-        super(DeRobertaGlobalClassifier, self).__init__()
-        _, self.model, _ = model_utils.initRoberta(freeze_weights)
+        super(DeDistilBertGlobalClassifier, self).__init__()
+        _, self.model = model_utils.initDistilBert(freeze_weights)
         self.subspace = bias_subspace
+        self.pre_classifier = nn.Linear(768, 768)
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, input_ids, attn_mask):
+
         out = self.model(input_ids, attn_mask)
-        out = out.pooler_output
-        out = model_utils.removeComponent(out, self.subspace)
-        out = self.fc(out)
-        return out
+        hidden_state = out.last_hidden_state  # (bs, seq_len, dim)
+        pooled_output = hidden_state[:, 0]  # (bs, dim)
+        # remove first
+        out = model_utils.removeComponent(pooled_output, self.subspace)
+
+        out = self.pre_classifier(out)  # (bs, dim)
+        out = nn.ReLU()(out)  # (bs, dim)
+        out = self.dropout(out)  # (bs, dim)
+        logits = self.fc(out)  # (bs, num_labels)
+
+        return logits
+
 
 
 if __name__ == '__main__':
@@ -46,7 +63,7 @@ if __name__ == '__main__':
     2. Call projection() on model output (a) and pc_tensor (b)
     3. Output is debiased rep, can be passed downstream
     """
-    tokenizer, _, _ = model_utils.initRoberta()
+    tokenizer, model = model_utils.initDistilBert()
     device = 'cpu'
     data_path = '../data/'
     pc_file = data_path + 'princComp.txt'
@@ -61,10 +78,10 @@ if __name__ == '__main__':
         return_attention_mask=True,
         return_tensors='pt')
 
-    cls1 = RobertaGlobalClassifier()
+    cls1 = DistilBertGlobalClassifier()
     cls1 = cls1.to(device)
 
-    cls2 = DeRobertaGlobalClassifier(pcs)
+    cls2 = DeDistilBertGlobalClassifier(pcs)
     cls2 = cls2.to(device)
 
     out1 = cls1(inputs['input_ids'], inputs['attention_mask'])

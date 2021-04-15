@@ -47,8 +47,8 @@ class DeBertClassifier(nn.Module):
         for j in range(1, 13):
           uproj, vproj = u, v
           if self.debias:
-              uproj = model_utils.projection(u[0], pc)
-              vproj = model_utils.projection(v[0], pc)
+              uproj = model_utils.removeComponent(u[0], pc)
+              vproj = model_utils.removeComponent(v[0], pc)
               uproj = uproj.unsqueeze(dim=0)
               vproj = vproj.unsqueeze(dim=0)
 

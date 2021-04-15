@@ -9,12 +9,12 @@ import model_utils
 class BertGlobalClassifier(nn.Module):
     def __init__(self, freeze_weights=False):
         super(BertGlobalClassifier, self).__init__()
-        _, self.bert = model_utils.initBert(freeze_weights)
+        _, self.model = model_utils.initBert(freeze_weights)
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, input_ids, attn_mask):
-        out = self.bert(input_ids, attn_mask)
+        out = self.model(input_ids, attn_mask)
         out = out.pooler_output
         out = self.fc(out)
         return out
@@ -24,15 +24,15 @@ class DeBertGlobalClassifier(nn.Module):
 
     def __init__(self, bias_subspace, freeze_weights=False):
         super(DeBertGlobalClassifier, self).__init__()
-        _, self.bert = model_utils.initBert(freeze_weights)
+        _, self.model = model_utils.initBert(freeze_weights)
         self.subspace = bias_subspace
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, input_ids, attn_mask):
-        out = self.bert(input_ids, attn_mask)
+        out = self.model(input_ids, attn_mask)
         out = out.pooler_output
-        out = model_utils.projection(out, self.subspace)
+        out = model_utils.removeComponent(out, self.subspace)
         out = self.fc(out)
         return out
 

@@ -8,21 +8,17 @@ import model_utils
 class GPT2GlobalClassifier(nn.Module):
     def __init__(self, freeze_weights=False):
         super(GPT2GlobalClassifier, self).__init__()
-        self.tokenizer, self.gpt2 = model_utils.initGpt2(freeze_weights)
+        self.tokenizer, self.model = model_utils.initGpt2(freeze_weights)
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, input_ids, attn_mask):
-        out = self.gpt2(input_ids=input_ids, attention_mask=attn_mask)
+        out = self.model(input_ids=input_ids, attention_mask=attn_mask)
         out = out.last_hidden_state
-        # print(out.shape)
         out = self.fc(out)
-        # print(out.shape)
         batch_size = input_ids.shape[0]
         sequence_lengths = torch.ne(input_ids, self.tokenizer.pad_token_id).sum(-1) - 1
-        # print('seq lens', sequence_lengths)
         pooled_out = out[range(batch_size), sequence_lengths]
-        # print(pooled_out.shape)
 
         return pooled_out
 
@@ -30,12 +26,12 @@ class GPT2GlobalClassifier(nn.Module):
 # class GPT2GlobalClassifier(nn.Module):
 #     def __init__(self, freeze_weights=False):
 #         super(GPT2GlobalClassifier, self).__init__()
-#         self.tokenizer, self.gpt2 = model_utils.initGpt2(freeze_weights)
+#         self.tokenizer, self.model = model_utils.initGpt2(freeze_weights)
 #         self.fc = nn.Linear(768, 2)
 #         self.dropout = nn.Dropout(0.1)
 #
 #     def forward(self, input_ids, attn_mask):
-#         out = self.gpt2(input_ids=input_ids, attention_mask=attn_mask)
+#         out = self.model(input_ids=input_ids, attention_mask=attn_mask)
 #         out = out.last_hidden_state
 #         # print(out.shape)
 #         batch_size = input_ids.shape[0]
@@ -53,20 +49,20 @@ class DeGPT2GlobalClassifier(nn.Module):
 
     def __init__(self, bias_subspace, freeze_weights=False):
         super(DeGPT2GlobalClassifier, self).__init__()
-        self.tokenizer, self.gpt2 = model_utils.initGpt2(freeze_weights)
+        self.tokenizer, self.model = model_utils.initGpt2(freeze_weights)
         self.subspace = bias_subspace
         self.fc = nn.Linear(768, 2)
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, input_ids, attn_mask):
-        out = self.gpt2(input_ids=input_ids, attention_mask=attn_mask)
+        out = self.model(input_ids=input_ids, attention_mask=attn_mask)
         out = out.last_hidden_state
 
         batch_size = input_ids.shape[0]
         sequence_lengths = torch.ne(input_ids, self.tokenizer.pad_token_id).sum(-1) - 1
         pooled_out = out[range(batch_size), sequence_lengths]
 
-        out = model_utils.projection(pooled_out, self.subspace)
+        out = model_utils.removeComponent(pooled_out, self.subspace)
         out = self.fc(out)
         return out
 

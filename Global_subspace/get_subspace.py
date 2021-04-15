@@ -44,7 +44,8 @@ if __name__ == '__main__':
       non_toxic_sents = f.readlines()
 
     model_name = args.model_name if args.model_name else 'gpt2'
-    tokenizer, model = model_utils.getPretrained(model_name)
+    pretrained = model_utils.getPretrained(model_name)
+    tokenizer, model = pretrained[0], pretrained[1]
 
     # todo: Compute PMI
 

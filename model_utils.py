@@ -2,22 +2,33 @@ import numpy as np
 import torch
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+
+from Global_classifier.dealbert_global import DeAlbertGlobalClassifier, AlbertGlobalClassifier
 from Global_classifier.debert_global import BertGlobalClassifier, DeBertGlobalClassifier
 from Global_classifier.degpt_global import GPT2GlobalClassifier, DeGPT2GlobalClassifier
 from Global_classifier.deroberta_global import RobertaGlobalClassifier, DeRobertaGlobalClassifier
+from Global_classifier.distilbert_global import DistilBertGlobalClassifier, DeDistilBertGlobalClassifier
 from Local_classifier.models.bert import BertClassifier, DeBertClassifier
 
 
-def getPooledOutput(out, model, input_ids, tokenizer, batch_size):
+def getPooledOutput(out, model_name, input_ids, tokenizer, batch_size):
   pooled_out = None
 
-  if model == 'gpt2':
+  if model_name in ['gpt2']:
     out = out.last_hidden_state
     sequence_lengths = torch.ne(input_ids, tokenizer.pad_token_id).sum(-1) - 1
     pooled_out = out[range(batch_size), sequence_lengths]
 
-  elif model == 'bert':
+  elif model_name in ['bert', 'roberta', 'albert']:
     pooled_out = out.pooler_output
+
+  elif model_name in ['distilbert']:
+    hidden_state = out.last_hidden_state  # (bs, seq_len, dim)
+    pooled_out = hidden_state[:, 0]  # (bs, dim)
+    # pooled_output = self.pre_classifier(pooled_output)  # (bs, dim)
+    # pooled_output = nn.ReLU()(pooled_output)  # (bs, dim)
+    # pooled_output = self.dropout(pooled_output)  # (bs, dim)
+    # logits = self.fc(pooled_output)  # (bs, num_labels)
 
   return pooled_out
 
@@ -51,7 +62,7 @@ def getPrincipalComponents(D, num_comp=None):
   return torch.Tensor(np.array(pca.components_)), np.array(ev_percent), np.array(ev)
 
 
-def projection(a, b):
+def removeComponent(a, b):
   inner = torch.mm(a, b.T)
   res = a - torch.mm(inner, b)
   return res
@@ -84,6 +95,7 @@ def initGpt2(freeze_weights=False):
   return gpt2_tokenizer, gpt2_model
 
 
+
 def initRoberta(freeze_weights=False):
   from transformers import RobertaTokenizer, RobertaModel, BertModel
   roberta_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
@@ -95,6 +107,27 @@ def initRoberta(freeze_weights=False):
 
   return roberta_tokenizer, roberta_model, bert_model
 
+def initAlbert(freeze_weights=False):
+  from transformers import AlbertTokenizer, AlbertModel
+  tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
+  model = AlbertModel.from_pretrained('albert-base-v2')
+
+  if freeze_weights:
+    for param in model.parameters():
+      param.requires_grad = False
+
+  return tokenizer, model
+
+def initDistilBert(freeze_weights=False):
+  from transformers import DistilBertTokenizer, DistilBertModel
+  tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+  model = DistilBertModel.from_pretrained('distilbert-base-uncased')
+
+  if freeze_weights:
+    for param in model.parameters():
+      param.requires_grad = False
+
+  return tokenizer, model
 
 def initXlnet():
   from transformers import XLNetTokenizer, XLNetModel
@@ -116,6 +149,14 @@ def initGlobalRoberta(freeze_weights=False):
   return RobertaGlobalClassifier(freeze_weights)
 
 
+def initGlobalAlbert(freeze_weights=False):
+  model = AlbertGlobalClassifier(freeze_weights)
+  return model
+
+def initGlobalDistilBert(freeze_weights=False):
+  model = DistilBertGlobalClassifier(freeze_weights)
+  return model
+
 def initGlobalXlnet():
   return
 
@@ -133,6 +174,15 @@ def initGlobalRobertaDebiased(subspace, freeze_weights=False):
   return DeRobertaGlobalClassifier(subspace, freeze_weights)
 
 
+def initGlobalAlbertDebiased(subspace, freeze_weights=False):
+  model = DeAlbertGlobalClassifier(subspace, freeze_weights)
+  return model
+
+def initGlobalDistilBertDebiased(freeze_weights=False):
+  model = DeDistilBertGlobalClassifier(freeze_weights)
+  return model
+
+
 def initGlobalXlnetDebiased():
   return
 
@@ -143,6 +193,7 @@ def getPretrained(model):
     'gpt2': initGpt2,
     'gpt2_2': initGpt2,
     'roberta': initRoberta,
+    'albert': initAlbert,
     'xlnet': initXlnet
   }
   return switcher.get(model, (None, None))()
@@ -152,6 +203,7 @@ def getGlobalModel(model_name, freeze_weights=False):
     'bert': initGlobalBert,
     'gpt2': initGlobalGpt2,
     'roberta': initGlobalRoberta,
+    'albert': initGlobalAlbert,
     'xlnet': initGlobalXlnet
   }
   return switcher.get(model_name, (None, None))(freeze_weights)
@@ -163,6 +215,7 @@ def getGlobalModelDebiased(model_name, subspace, freeze_weights=False):
     'bert': initGlobalBertDebiased,
     'gpt2': initGlobalGpt2Debiased,
     'roberta': initGlobalRobertaDebiased,
+    'albert': initGlobalAlbertDebiased,
     'xlnet': initGlobalXlnetDebiased
   }
   return switcher.get(model_name, (None, None))(subspace, freeze_weights)

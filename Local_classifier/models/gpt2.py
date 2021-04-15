@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from transformers import GPT2Model
 
-from model_utils import getPrincipalComponents, projection, initGpt2
+from model_utils import getPrincipalComponents, removeComponent, initGpt2
 
 
 class Gpt2Classifier(nn.Module):
@@ -63,8 +63,8 @@ class DeGpt2Classifier(nn.Module):
 
         for j in range(1, 13):
             if self.debias:
-                uproj = projection(u[0], pc)
-                vproj = projection(v[0], pc)
+                uproj = removeComponent(u[0], pc)
+                vproj = removeComponent(v[0], pc)
             else:
                 uproj = u[0]
                 vproj = v[0]

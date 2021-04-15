@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from model_utils import getPrincipalComponents, projection
+from model_utils import getPrincipalComponents, removeComponent
 
 class DetoxRobertaClassifier(nn.Module):
 
@@ -25,8 +25,8 @@ class DetoxRobertaClassifier(nn.Module):
 
         for j in range(1, 13):
             if self.debias:
-                uproj = projection(u[0], pc)
-                vproj = projection(v[0], pc)
+                uproj = removeComponent(u[0], pc)
+                vproj = removeComponent(v[0], pc)
             else:
                 uproj = u[0]
                 vproj = v[0]

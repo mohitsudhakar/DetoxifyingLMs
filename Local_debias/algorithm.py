@@ -2,7 +2,7 @@
 # and returns layer wise PC set {P_0, ..., P_12}
 import torch
 import nvsmi
-from model_utils import getPrincipalComponents, projection, getAttentionMask
+from model_utils import getPrincipalComponents, removeComponent, getAttentionMask
 
 def sentence_debias(S_t, S_nt, model, debias=True, model_name=''):
     if model_name == 'xlnet':
@@ -34,8 +34,8 @@ def sentence_debias(S_t, S_nt, model, debias=True, model_name=''):
     for j in range(1, 13):
         # print("BERT Layer j =", j)
         if debias:
-            uproj = projection(u[j - 1][0], PCs[j - 1])
-            vproj = projection(v[j - 1][0], PCs[j - 1])
+            uproj = removeComponent(u[j - 1][0], PCs[j - 1])
+            vproj = removeComponent(v[j - 1][0], PCs[j - 1])
         else:
             uproj = u[ j -1][0]
             vproj = v[ j -1][0]
@@ -113,8 +113,8 @@ def group_debias(S_t_list, S_nt_list, num_sents, model, debias=True, gpu=0, mode
         for i in range(num_sents):
 
             if debias:
-                uproj = projection(u[i], pc)
-                vproj = projection(v[i], pc)
+                uproj = removeComponent(u[i], pc)
+                vproj = removeComponent(v[i], pc)
             else:
                 uproj = u[i]
                 vproj = v[i]
@@ -196,8 +196,8 @@ def xlnet_sentence_debias(S_t, S_nt, model, debias=True):
     for j in range(1, 13):
         # print("BERT Layer j =", j)
         if debias:
-            u_out_h[j - 1] = projection(u_out_h[j - 1][0], PCs[j - 1]).unsqueeze(dim=0).cuda()
-            v_out_h[j - 1] = projection(v_out_h[j - 1][0], PCs[j - 1]).unsqueeze(dim=0).cuda()
+            u_out_h[j - 1] = removeComponent(u_out_h[j - 1][0], PCs[j - 1]).unsqueeze(dim=0).cuda()
+            v_out_h[j - 1] = removeComponent(v_out_h[j - 1][0], PCs[j - 1]).unsqueeze(dim=0).cuda()
             # u_out_g[j-1] = projection(u_out_g[j - 1][0], PCs[j - 1]).unsqueeze(dim=0).cuda()
             # v_out_g[j-1] = projection(v_out_g[j - 1][0], PCs[j - 1]).unsqueeze(dim=0).cuda()
 
@@ -281,8 +281,8 @@ def xlnet_group_debias(S_t_list, S_nt_list, num_sents, model, debias=True, gpu=0
         for i in range(num_sents):
 
             if debias:
-                u_h[i] = projection(u_h[i][0], pc).unsqueeze(dim=0).cuda(gpu)
-                v_h[i] = projection(v_h[i][0], pc).unsqueeze(dim=0).cuda(gpu)
+                u_h[i] = removeComponent(u_h[i][0], pc).unsqueeze(dim=0).cuda(gpu)
+                v_h[i] = removeComponent(v_h[i][0], pc).unsqueeze(dim=0).cuda(gpu)
                 # u_g = projection(u_g[i], pc).unsqueeze(dim=0).cuda()
                 # v_g = projection(v_g[i], pc).unsqueeze(dim=0).cuda()
 
