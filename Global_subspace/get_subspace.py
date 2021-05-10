@@ -21,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--data_path", help="Data path, data/")
     parser.add_argument("-w", "--num_words", help="Number of words to be considered")
     parser.add_argument("-k", "--kernel", help="Kernel PCA", action='store_true')
+    parser.add_argument("-kf", "--kernel_func", help="Kernel Function")
     args = parser.parse_args()
 
     seq_len = 64
@@ -29,6 +30,9 @@ if __name__ == '__main__':
     batch_size = int(args.batch_size) if args.batch_size else 1
     num_words = int(args.num_words) if args.num_words else 100
     num_components = int(args.num_components) if args.num_components else 1
+    kernel_func = None
+    if args.kernel:
+        kernel_func = args.kernel_func if args.kernel_func else 'rbf'
 
     if num_components > batch_size:
         print('Num_components must be lower than batch_size')
@@ -89,7 +93,7 @@ if __name__ == '__main__':
       # kernel
       if args.kernel:
         from sklearn.metrics.pairwise import pairwise_kernels
-        K = pairwise_kernels(diff_vector, metric='rbf')
+        K = pairwise_kernels(diff_vector, metric=kernel_func)
         print('K', K.shape)
         incPca.partial_fit(K)
       else:
