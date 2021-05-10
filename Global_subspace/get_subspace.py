@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import torch
+from numpy import dot, diag
 
 import model_utils
 from gpu_utils import getFreeGpu, getMemUtil
@@ -19,14 +20,15 @@ if __name__ == '__main__':
     parser.add_argument("-b", "--batch_size", help="Batch size")
     parser.add_argument("-p", "--data_path", help="Data path, data/")
     parser.add_argument("-w", "--num_words", help="Number of words to be considered")
+    parser.add_argument("-k", "--kernel", help="Kernel PCA", action='store_true')
     args = parser.parse_args()
 
-    seq_len = 128
+    seq_len = 64
     emb_dim = 768
     num_layers = 12
-    batch_size = int(args.batch_size) if args.batch_size else 50
+    batch_size = int(args.batch_size) if args.batch_size else 1
     num_words = int(args.num_words) if args.num_words else 100
-    num_components = int(args.num_components) if args.num_components else 50
+    num_components = int(args.num_components) if args.num_components else 1
 
     if num_components > batch_size:
         print('Num_components must be lower than batch_size')
@@ -43,7 +45,7 @@ if __name__ == '__main__':
     with open(nt_path, 'r') as f:
       non_toxic_sents = f.readlines()
 
-    model_name = args.model_name if args.model_name else 'gpt2'
+    model_name = args.model_name if args.model_name else 'bert'
     pretrained = model_utils.getPretrained(model_name)
     tokenizer, model = pretrained[0], pretrained[1]
 
@@ -82,8 +84,17 @@ if __name__ == '__main__':
 
       D = pool_tox - pool_ntox
       diff_vector = D.cpu().detach().numpy()
-      incPca.partial_fit(diff_vector)
-      # print(torch.Tensor(np.array(incPca.components_)).shape)
+
+
+      # kernel
+      if args.kernel:
+        from sklearn.metrics.pairwise import pairwise_kernels
+        K = pairwise_kernels(diff_vector, metric='rbf')
+        print('K', K.shape)
+        incPca.partial_fit(K)
+      else:
+        incPca.partial_fit(diff_vector)
+
       torch.cuda.empty_cache()
 
 
